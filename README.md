@@ -387,10 +387,11 @@ Prometheus and Grafana, you already see **GPU power and utilisation on Kubernete
 Aareka differs in three ways:
 
 - **It measures whole servers, not just GPUs.** Those tools read the power and utilisation
-  of the GPU itself. Aareka accounts for the whole server: the GPU, the CPU, the memory,
-  and the parts it cannot measure directly (fans, storage and power supply losses),
-  checked against a physical meter where one exists. In a real datacenter, the power used
-  outside the GPU is significant.
+  of the GPU itself. Aareka also reads the CPU and memory, and where the server's
+  management controller (BMC) is available, it uses the controller's reading of the whole
+  machine, which includes fans, storage and power supply losses. Without a BMC, Aareka
+  reports only the parts it measured and says that the true total is higher. In a real
+  datacenter, the power used outside the GPU is significant.
 - **It gives numbers you can defend.** A metric is just a number; Aareka's figures can
   stand up to scrutiny. It labels every figure as measured or estimated, checks it against
   a total, and shows what it could not attribute, instead of presenting a GPU reading as

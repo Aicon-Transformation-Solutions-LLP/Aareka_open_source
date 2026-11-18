@@ -39,8 +39,9 @@ about it.
 
 The demo shows the dashboard for an example datacenter, so you can see what Aareka
 measures before you install anything. The datacenter is illustrative, but every figure on
-the page was calculated by the real Aareka engine. The energy per token figures are a real
-measurement taken on an NVIDIA RTX 3050.
+the page was calculated by the real Aareka engine. The energy per token panel shows a real
+measurement of Llama 3.2 3B, taken with the Aareka collector by sampling GPU power every
+half second and dividing the energy by the tokens produced.
 
 [![The Aareka demo dashboard, showing power, cost, carbon, GPU waste today and energy per token](docs/images/demo-dashboard-top.png)](https://aicontransformation.com/aareka-demo/)
 

@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# The processor's database holds readings, the collector key and settings
+*.db
+*.db-journal
+
+# Secrets
+*.pem
+*.key
+keys.json
+.env

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1660 1030" font-family="'Segoe UI', system-ui, -apple-system, Arial, sans-serif">
+  <title>Aareka architecture</title>
+  <desc>A read-only collector on your machines sends readings to the Aareka processor, which attributes power, works out energy per token and GPU waste, stores everything in one database and serves the dashboard. Everything shown is in this repository and open source; the processor runs wherever you choose, or you can use the hosted service.</desc>
+  <defs>
+    <marker id="aBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#3b7dd8"/></marker>
+    <marker id="aGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f9e63"/></marker>
+    <marker id="aGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#8a96a3"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="1660" height="1030" fill="#ffffff"/>
+
+  <!-- title -->
+  <text x="40" y="50" font-size="26" font-weight="700" fill="#0969da">Aareka — Architecture</text>
+  <text x="40" y="78" font-size="15" fill="#5c6b7a">Everything shown here is in this repository and open source under Apache 2.0. Run it all on your own machines, or point the collector at the hosted service instead.</text>
+
+  <!-- ================= YOUR MACHINES ================= -->
+  <rect x="40" y="150" width="400" height="350" rx="16" fill="#fbfbfc" stroke="#e3e6ea" stroke-width="2"/>
+  <text x="64" y="180" font-size="19" fill="#4a5560">Your machines</text>
+  <rect x="64" y="192" width="352" height="140" rx="10" fill="#f4f5f7" stroke="#d9dee4" stroke-width="2"/>
+  <text x="240" y="222" text-anchor="middle" font-size="18" font-weight="700" fill="#3a4653">Telemetry sources</text>
+  <text x="240" y="250" text-anchor="middle" font-size="14" fill="#66707c">nvidia-smi / NVML · DCGM (GPU)</text>
+  <text x="240" y="272" text-anchor="middle" font-size="14" fill="#66707c">RAPL (CPU) · BMC / IPMI / Redfish</text>
+  <text x="240" y="294" text-anchor="middle" font-size="14" fill="#66707c">vCenter · Kubernetes + Prometheus</text>
+  <text x="240" y="316" text-anchor="middle" font-size="14" fill="#66707c">inference server /metrics (tokens)</text>
+  <line x1="240" y1="332" x2="240" y2="356" stroke="#8a96a3" stroke-width="2.5" marker-end="url(#aGray)"/>
+  <rect x="64" y="360" width="352" height="120" rx="10" fill="#ecebfb" stroke="#b9aee8" stroke-width="2"/>
+  <text x="240" y="394" text-anchor="middle" font-size="19" font-weight="700" fill="#4b37b3">Collector</text>
+  <text x="240" y="419" text-anchor="middle" font-size="14" fill="#6e63a8">Collector/aareka_sender.py</text>
+  <text x="240" y="441" text-anchor="middle" font-size="14" fill="#6e63a8">reads only · outbound calls only</text>
+  <text x="240" y="463" text-anchor="middle" font-size="14" fill="#6e63a8">power · GPU use and memory · tokens · owners</text>
+
+  <!-- ================= YOUR TEAM ================= -->
+  <rect x="40" y="540" width="400" height="225" rx="16" fill="#fbfbfc" stroke="#e3e6ea" stroke-width="2"/>
+  <text x="64" y="570" font-size="19" fill="#4a5560">Your team</text>
+  <rect x="64" y="582" width="352" height="80" rx="10" fill="#e7f0fb" stroke="#a9c6ec" stroke-width="2"/>
+  <text x="240" y="615" text-anchor="middle" font-size="19" font-weight="700" fill="#1e5f9e">Browser</text>
+  <text x="240" y="641" text-anchor="middle" font-size="14" fill="#4a7bb0">no login · opens the processor's address</text>
+  <line x1="240" y1="662" x2="240" y2="688" stroke="#8a96a3" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#aGray)"/>
+  <text x="252" y="680" font-size="12" fill="#8a96a3">you decide and act</text>
+  <rect x="64" y="690" width="352" height="62" rx="10" fill="#f4f5f7" stroke="#d9dee4" stroke-width="2"/>
+  <text x="240" y="715" text-anchor="middle" font-size="16" font-weight="700" fill="#3a4653">Your orchestrator</text>
+  <text x="240" y="738" text-anchor="middle" font-size="13" fill="#66707c">Kubernetes · Slurm · vSphere — Aareka never acts here</text>
+
+  <!-- ================= BOUNDARY ================= -->
+  <line x1="475" y1="150" x2="475" y2="920" stroke="#b7c0cb" stroke-width="2" stroke-dasharray="7 6"/>
+  <text x="475" y="800" transform="rotate(-90 475 800)" text-anchor="middle" font-size="13" fill="#8a96a3">outbound only · no inbound ports</text>
+
+  <!-- ================= PROCESSOR ================= -->
+  <rect x="505" y="150" width="1120" height="770" rx="16" fill="#fafafb" stroke="#e3e6ea" stroke-width="2"/>
+  <text x="530" y="182" font-size="19" fill="#4a5560">Aareka processor — the Processor/ folder · runs on any machine with Python: your server, your cloud account, or air-gapped</text>
+
+  <!-- HTTPS front -->
+  <rect x="530" y="210" width="130" height="510" rx="10" fill="#f4f5f7" stroke="#d9dee4" stroke-width="2"/>
+  <text x="595" y="250" text-anchor="middle" font-size="18" font-weight="700" fill="#3a4653">HTTPS</text>
+  <text x="595" y="274" text-anchor="middle" font-size="13" fill="#66707c">your proxy or</text>
+  <text x="595" y="292" text-anchor="middle" font-size="13" fill="#66707c">load balancer</text>
+  <text x="595" y="690" text-anchor="middle" font-size="12" fill="#8a96a3">needed when</text>
+  <text x="595" y="706" text-anchor="middle" font-size="12" fill="#8a96a3">it crosses a network</text>
+
+  <!-- ingest -->
+  <rect x="690" y="330" width="250" height="95" rx="10" fill="#fbebe6" stroke="#e8b4a2" stroke-width="2"/>
+  <text x="815" y="368" text-anchor="middle" font-size="18" font-weight="700" fill="#b23a1e">Ingest API</text>
+  <text x="815" y="393" text-anchor="middle" font-size="13.5" fill="#c0552f">ingest_api.py</text>
+  <text x="815" y="413" text-anchor="middle" font-size="13.5" fill="#c0552f">rejects any sender without the key</text>
+
+  <!-- processing -->
+  <rect x="980" y="215" width="280" height="90" rx="10" fill="#fbebe6" stroke="#e8b4a2" stroke-width="2"/>
+  <text x="1120" y="252" text-anchor="middle" font-size="18" font-weight="700" fill="#b23a1e">Attribution</text>
+  <text x="1120" y="278" text-anchor="middle" font-size="13.5" fill="#c0552f">power → workloads → departments</text>
+
+  <rect x="980" y="330" width="280" height="90" rx="10" fill="#fbebe6" stroke="#e8b4a2" stroke-width="2"/>
+  <text x="1120" y="367" text-anchor="middle" font-size="18" font-weight="700" fill="#b23a1e">Energy per token</text>
+  <text x="1120" y="393" text-anchor="middle" font-size="13.5" fill="#c0552f">joules per output token, per model</text>
+
+  <rect x="980" y="445" width="280" height="90" rx="10" fill="#fbebe6" stroke="#e8b4a2" stroke-width="2"/>
+  <text x="1120" y="482" text-anchor="middle" font-size="18" font-weight="700" fill="#b23a1e">GPU waste</text>
+  <text x="1120" y="508" text-anchor="middle" font-size="13.5" fill="#c0552f">state per GPU · idle spells · cost</text>
+
+  <!-- database -->
+  <rect x="1310" y="215" width="290" height="320" rx="10" fill="#ddf1ea" stroke="#a6d7c4" stroke-width="2"/>
+  <text x="1455" y="300" text-anchor="middle" font-size="18" font-weight="700" fill="#1b6b4f">Database (SQLite)</text>
+  <text x="1455" y="328" text-anchor="middle" font-size="13.5" fill="#3e8e70">aareka_ingest.db</text>
+  <text x="1455" y="362" text-anchor="middle" font-size="13.5" fill="#3e8e70">raw readings · results · settings</text>
+  <text x="1455" y="386" text-anchor="middle" font-size="13.5" fill="#3e8e70">one file on your machine</text>
+  <text x="1455" y="420" text-anchor="middle" font-size="13.5" fill="#3e8e70">raw readings are kept, so past</text>
+  <text x="1455" y="442" text-anchor="middle" font-size="13.5" fill="#3e8e70">figures can be recalculated</text>
+  <text x="1455" y="464" text-anchor="middle" font-size="13.5" fill="#3e8e70">when a threshold changes</text>
+
+  <!-- collector key + dashboard -->
+  <rect x="690" y="480" width="250" height="80" rx="10" fill="#fdf3da" stroke="#e6c86a" stroke-width="2"/>
+  <text x="815" y="513" text-anchor="middle" font-size="18" font-weight="700" fill="#8a6d1f">Collector key</text>
+  <text x="815" y="539" text-anchor="middle" font-size="13.5" fill="#a5843a">made on first start · checked every send</text>
+
+  <rect x="690" y="600" width="250" height="110" rx="10" fill="#fbebe6" stroke="#e8b4a2" stroke-width="2"/>
+  <text x="815" y="635" text-anchor="middle" font-size="18" font-weight="700" fill="#b23a1e">Dashboard &amp; Settings</text>
+  <text x="815" y="661" text-anchor="middle" font-size="13.5" fill="#c0552f">dashboard.html</text>
+  <text x="815" y="683" text-anchor="middle" font-size="13.5" fill="#c0552f">rates · waste thresholds</text>
+
+  <!-- hosted option -->
+  <rect x="530" y="770" width="1070" height="110" rx="10" fill="#f4f5f7" stroke="#d9dee4" stroke-width="2"/>
+  <text x="1065" y="808" text-anchor="middle" font-size="16" font-weight="700" fill="#3a4653">Prefer not to run it yourself?</text>
+  <text x="1065" y="834" text-anchor="middle" font-size="15" fill="#4a5560">AICON Transformation Solutions also offers the processor as a hosted service.</text>
+  <text x="1065" y="858" text-anchor="middle" font-size="15" fill="#4a5560">Point the collector at aareka.aicontransformation.com instead of your own processor.</text>
+
+  <!-- ================= ARROWS ================= -->
+  <!-- data in -->
+  <line x1="416" y1="400" x2="527" y2="400" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <text x="472" y="392" text-anchor="middle" font-size="11.5" fill="#3b7dd8">readings + key</text>
+  <line x1="527" y1="424" x2="418" y2="424" stroke="#3b7dd8" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#aBlue)"/>
+  <text x="472" y="440" text-anchor="middle" font-size="11" fill="#8a96a3">receipt only</text>
+  <line x1="660" y1="377" x2="688" y2="377" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="940" y1="360" x2="978" y2="260" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="940" y1="377" x2="978" y2="375" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="940" y1="394" x2="978" y2="490" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="1260" y1="260" x2="1308" y2="260" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="1260" y1="375" x2="1308" y2="375" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <line x1="1260" y1="490" x2="1308" y2="490" stroke="#3b7dd8" stroke-width="2.5" marker-end="url(#aBlue)"/>
+  <text x="815" y="320" text-anchor="middle" font-size="11" fill="#8a96a3">checked readings</text>
+  <text x="1284" y="205" text-anchor="middle" font-size="11" fill="#8a96a3">results + raw readings</text>
+
+  <!-- your view -->
+  <line x1="416" y1="612" x2="527" y2="612" stroke="#2f9e63" stroke-width="2.5" marker-end="url(#aGreen)"/>
+  <text x="472" y="604" text-anchor="middle" font-size="11.5" fill="#2f9e63">sign in + view</text>
+  <line x1="527" y1="636" x2="418" y2="636" stroke="#2f9e63" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#aGreen)"/>
+  <text x="472" y="652" text-anchor="middle" font-size="11" fill="#8a96a3">this site's data</text>
+  <line x1="660" y1="655" x2="688" y2="655" stroke="#2f9e63" stroke-width="2.5" marker-end="url(#aGreen)"/>
+  <polyline points="940,655 1455,655 1455,537" fill="none" stroke="#2f9e63" stroke-width="2.5" marker-end="url(#aGreen)"/>
+  <text x="1190" y="647" text-anchor="middle" font-size="11" fill="#8a96a3">reads this site's data</text>
+
+  <!-- the key checks every send -->
+  <line x1="815" y1="480" x2="815" y2="428" stroke="#8a96a3" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#aGray)"/>
+  <text x="828" y="458" font-size="12" fill="#8a96a3">checks</text>
+
+  <!-- ================= LEGEND ================= -->
+  <rect x="40" y="800" width="400" height="200" rx="12" fill="#fbfbfc" stroke="#e3e6ea" stroke-width="2"/>
+  <text x="64" y="832" font-size="16" font-weight="700" fill="#3a4653">How to read this</text>
+  <rect x="64" y="852" width="26" height="10" rx="3" fill="#3b7dd8"/>
+  <text x="100" y="862" font-size="14" font-weight="600" fill="#101720">Data in</text>
+  <text x="64" y="886" font-size="13" fill="#5c6b7a">Collector → Ingest API → the three engines → database</text>
+  <rect x="64" y="906" width="26" height="10" rx="3" fill="#2f9e63"/>
+  <text x="100" y="916" font-size="14" font-weight="600" fill="#101720">Your view</text>
+  <text x="64" y="940" font-size="13" fill="#5c6b7a">Browser → dashboard → database (no login)</text>
+  <text x="64" y="970" font-size="13" fill="#5c6b7a">Read-only: nothing is written to your machines</text>
+  <text x="64" y="990" font-size="13" fill="#5c6b7a">Self-hosted: nothing leaves your network</text>
+</svg>

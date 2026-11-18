@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aareka - power, energy per token and GPU waste</title>
+<style>
+  :root{--bg:#0b0e14;--panel:#141922;--panel2:#1b2230;--line:#26303f;--ink:#e6edf3;
+    --muted:#8b98a9;--accent:#4da3ff;--good:#3fb950;--warn:#d29922;--bad:#f85149;}
+  @media (prefers-color-scheme: light){:root{--bg:#f6f8fb;--panel:#fff;--panel2:#eef2f7;
+    --line:#dce3ec;--ink:#101720;--muted:#5c6b7a;--accent:#0969da;--good:#1a7f37;
+    --warn:#9a6700;--bad:#cf222e;}}
+  :root[data-theme=dark]{--bg:#0b0e14;--panel:#141922;--panel2:#1b2230;--line:#26303f;
+    --ink:#e6edf3;--muted:#8b98a9;--accent:#4da3ff;--good:#3fb950;--warn:#d29922;--bad:#f85149;}
+  :root[data-theme=light]{--bg:#f6f8fb;--panel:#fff;--panel2:#eef2f7;--line:#dce3ec;
+    --ink:#101720;--muted:#5c6b7a;--accent:#0969da;--good:#1a7f37;--warn:#9a6700;--bad:#cf222e;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  .wrap{max-width:1000px;margin:0 auto;padding:26px 20px 60px}
+  header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);padding-bottom:14px;margin-bottom:18px}
+  .logo{font-weight:800;letter-spacing:.3px;font-size:23px}
+  .beta{background:var(--accent);color:#02121f;font-weight:700;font-size:11px;
+    padding:2px 8px;border-radius:999px;letter-spacing:.4px}
+  .tag{color:var(--muted);font-size:13px}
+  .demolbl{margin-left:auto;font-size:11px;color:var(--muted);border:1px solid var(--line);
+    padding:3px 9px;border-radius:999px}
+  .kpis{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .kpi{flex:1;min-width:150px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px}
+  .kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted)}
+  .kpi .v{font-size:27px;font-weight:800;margin-top:3px}
+  .kpi.cost .v{color:var(--bad)} .kpi.idle .v{color:var(--warn)}
+  .kpi .s{font-size:12px;color:var(--muted)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:20px 22px;margin-bottom:18px}
+  .card h2{margin:0 0 16px;font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+  .stack{height:34px;border-radius:9px;overflow:hidden;display:flex;background:var(--panel2)}
+  .seg{cursor:pointer;transition:opacity .15s} .seg:hover{opacity:.82}
+  .stacklegend{display:flex;gap:18px;flex-wrap:wrap;margin-top:13px;font-size:12.5px;color:var(--muted)}
+  .lg{cursor:pointer} .lg:hover{color:var(--ink)}
+  .sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px}
+  .tab{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:7px 13px;
+    border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:inherit}
+  .tab.on{background:var(--accent);color:#02121f;border-color:var(--accent)}
+  .sub{color:var(--muted);font-size:13px;margin:2px 0 14px}
+  .badge{font-size:10.5px;background:var(--panel2);border:1px solid var(--line);
+    padding:1px 7px;border-radius:999px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+  .row{display:grid;grid-template-columns:120px 1fr 215px;gap:12px;align-items:center;margin-bottom:13px}
+  @media(max-width:600px){.row{grid-template-columns:96px 1fr}.row .amt{display:none}}
+  .dname{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+  .track{height:26px;background:var(--panel2);border-radius:7px;overflow:hidden;display:flex}
+  .track .active{background:var(--good)} .track .idle{background:var(--warn)}
+  .amt{text-align:right;font-variant-numeric:tabular-nums;font-size:13px}
+  .amt b{font-size:15px} .amt .c{color:var(--muted)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:4px}
+  .note{margin-top:14px;font-size:12.5px;color:var(--warn)}
+  .hint{font-size:11px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400}
+  .savings{font-size:15px;margin-bottom:14px;padding:11px 14px;background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px}
+  .savings b{color:var(--good)}
+  .rec{display:grid;grid-template-columns:1fr 210px 130px;gap:12px;align-items:center;
+    padding:11px 0;border-bottom:1px solid var(--panel2);font-size:13.5px}
+  @media(max-width:640px){.rec{grid-template-columns:1fr;gap:4px}.rec .recsave{text-align:left}}
+  .rectgt .c{color:var(--muted);font-size:12.5px}
+  .recact{color:var(--accent);font-weight:600;font-size:13px}
+  .handoff{font-size:11px;color:var(--muted);font-weight:400;margin-top:3px}
+  .recsave{text-align:right} .recsave b{color:var(--good);font-size:15px}
+  .recsave .c{color:var(--muted);font-size:11.5px}
+  .boundary{margin-top:14px;font-size:12.5px;color:var(--muted);background:var(--panel2);
+    border:1px solid var(--line);border-radius:9px;padding:11px 14px}
+  .boundary b{color:var(--ink)}
+  .tokhead{font-size:15px;margin-bottom:14px}
+  .tokhead b{color:var(--bad)}
+  .tok{display:grid;grid-template-columns:170px 1fr 210px;gap:12px;align-items:center;margin-bottom:13px}
+  @media(max-width:640px){.tok{grid-template-columns:1fr}.tok .amt{text-align:left}}
+  .tok .dname .c{display:block;font-weight:400;font-size:11.5px;color:var(--muted)}
+  .track .jt{background:var(--accent)}
+  .measured{font-size:10.5px;background:color-mix(in srgb,var(--good) 15%,transparent);color:var(--good);
+    padding:1px 8px;border-radius:999px;font-weight:600;margin-left:6px;text-transform:none;letter-spacing:0}
+  .estimated{font-size:10.5px;background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn);
+    padding:1px 8px;border-radius:999px;font-weight:600;margin-left:6px;text-transform:none;letter-spacing:0}
+  .states{display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:12.5px;color:var(--muted);margin-bottom:16px}
+  .pill{display:inline-block;font-size:11px;font-weight:600;border-radius:999px;padding:2px 9px;white-space:nowrap}
+  .st-working{color:var(--good);background:color-mix(in srgb,var(--good) 15%,transparent)}
+  .st-light_use{color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,transparent)}
+  .st-loaded_waiting,.st-empty{color:var(--warn);background:color-mix(in srgb,var(--warn) 15%,transparent)}
+  .st-unknown{color:var(--muted);background:var(--panel2)}
+  .empty{color:var(--muted);font-size:13.5px}
+  .empty code,.boundary code{background:var(--panel2);padding:1px 6px;border-radius:5px;font-size:12.5px}
+  .err{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad);color:var(--ink);
+    border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:13.5px}
+  button.btn{font:inherit;font-size:13px;font-weight:600;cursor:pointer;border-radius:9px;
+    border:1px solid var(--line);background:var(--panel2);color:var(--ink);padding:6px 12px}
+  button.btn.pri{background:var(--accent);color:#02121f;border-color:var(--accent)}
+  button.btn.sm{font-size:12px;padding:3px 9px}
+  details.card>summary{cursor:pointer;list-style:none;font-size:13px;text-transform:uppercase;
+    letter-spacing:.8px;color:var(--muted);font-weight:700}
+  details.card>summary::-webkit-details-marker{display:none}
+  details.card>summary::before{content:"\25B8  "} details.card[open]>summary::before{content:"\25BE  "}
+  .srow{display:grid;grid-template-columns:minmax(180px,1fr) 250px minmax(160px,1fr);gap:8px 14px;
+    align-items:center;padding:11px 0;border-bottom:1px solid var(--panel2);font-size:13.5px}
+  @media(max-width:700px){.srow{grid-template-columns:1fr}}
+  .srow .lab{font-weight:600} .srow .lab span{display:block;font-weight:400;font-size:12px;color:var(--muted)}
+  .srow .def{font-size:12px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .sf{font:inherit;font-size:13.5px;padding:6px 9px;border-radius:8px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);width:120px}
+  .unit{color:var(--muted);font-size:12.5px;margin-left:6px}
+  .chk{display:flex;gap:12px;flex-wrap:wrap} .chk label{display:flex;gap:5px;align-items:center}
+  table.rt{border-collapse:collapse;font-size:13px} table.rt td{padding:4px 12px 4px 0}
+  .smsg{font-size:13px} .smsg.ok{color:var(--good)} .smsg.bad{color:var(--bad)}
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;
+    justify-content:center;padding:16px;z-index:10}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;max-width:460px;width:100%}
+  .modal h3{margin:0 0 10px;font-size:17px} .modal p{margin:0 0 12px;font-size:14px}
+  .modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+  footer{margin-top:8px;color:var(--muted);font-size:12px;line-height:1.7;
+    border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Aareka</div>
+    <span class="beta">LIVE</span>
+    <span class="tag">every watt across your servers &mdash; GPU <b>and</b> CPU &mdash; attributed to the department that owns it</span>
+    <span class="demolbl" id="updated">loading&hellip;</span>
+  </header>
+
+  <div id="err"></div>
+  <div id="main"></div>
+</div>
+
+<script>
+// ---------------------------------------------------------------- helpers
+const INF = ['#4da3ff', '#3fb950', '#d29922', '#a371f7', '#f778ba', '#56d4dd'];
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g,
+  c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
+const num = (x, d) => Number(x).toLocaleString(undefined, {maximumFractionDigits: d});
+const fmtW = w => w >= 10000 ? num(w / 1000, 1) + ' kW' : num(Math.round(w), 0) + ' W';
+const fmtKWh = k => num(k, k >= 100 ? 0 : k >= 1 ? 1 : 2) + ' kWh';
+const fmtGH = h => num(h, h >= 100 ? 0 : h >= 10 ? 1 : 2);
+const fmtJ = j => j >= 3.6e6 ? fmtKWh(j / 3.6e6) : j >= 3600 ? num(j / 3600, 1) + ' Wh' : num(Math.round(j), 0) + ' J';
+function fmtDur(s){
+  s = Math.round(s || 0); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60);
+  if (h >= 48) return Math.floor(h / 24) + 'd ' + (h % 24) + 'h';
+  if (h) return h + 'h ' + String(m).padStart(2, '0') + 'm';
+  return m ? m + 'm' : s + 's';
+}
+let R = {};                                     // rates in use, from /v1/waste
+function money(x){
+  if (x == null) return '—';
+  const v = x > 0 && x < 0.01 ? '&lt; 0.01'
+    : Number(x).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  return (R.currency ? esc(R.currency) + ' ' : '') + v;
+}
+const hasElec = () => R.electricity_rate_per_kwh != null;
+const energyCost = kwh => hasElec() ? kwh * R.electricity_rate_per_kwh * (R.pue || 1) : null;
+const eRate = () => money(R.electricity_rate_per_kwh) + '/kWh' + (R.pue ? ' &times; PUE ' + num(R.pue, 2) : '');
+const ghRate = model => (R.gpu_hour_rates || {})[model] != null ? R.gpu_hour_rates[model] : null;
+const dept = d => d && d !== '' ? d : 'unmapped';
+// the collector's mode -> the infrastructure it describes (collector 0.7.0+)
+const INFRA = {local: 'Bare metal', fleet: 'Bare metal (fleet)', vcenter: 'VMware', kubernetes: 'Kubernetes'};
+const NOT_REPORTED = 'Not reported';
+const infraOf = host => INFRA[((D.hosts || {})[host] || {}).source] || NOT_REPORTED;
+const perDay = w => { const k = w * 24 / 1000, c = energyCost(k); return c != null ? money(c) + '/day' : fmtKWh(k) + '/day'; };
+
+async function get(path){
+  const r = await fetch(path, {cache: 'no-store'});
+  if (!r.ok) throw new Error(path + ' → HTTP ' + r.status);
+  return r.json();
+}
+
+// ---------------------------------------------------------------- state
+let D = null, cur = 'all', settings = null;
+
+// A published demo bakes its data into window.AAREKA_DEMO; the page then needs no processor.
+const DEMO = window.AAREKA_DEMO || null;
+
+async function load(){
+  if (DEMO) {
+    D = {snap: DEMO.snapshot.rows || [], hosts: DEMO.snapshot.hosts || {}, tokens: DEMO.tokens, waste: DEMO.waste};
+    settings = DEMO.settings; R = DEMO.waste.rates || {};
+    document.querySelector('.beta').textContent = 'DEMO';
+    $('updated').textContent = 'demo · illustrative data, real engine';
+    render();
+    return;
+  }
+  if (location.protocol === 'file:') {
+    // the data comes from the processor that serves this page; opened from disk there is none
+    $('updated').textContent = 'not connected';
+    $('err').innerHTML = '<div class="err"><b>Open this dashboard through the processor, not as a file.</b> ' +
+      'Start the processor from the <code>Processor</code> folder:<div class="boundary">' +
+      '<code>uvicorn ingest_api:app --host 127.0.0.1 --port 8080</code></div>' +
+      'then open <b>http://localhost:8080</b> (or your processor\'s address) in the browser.</div>';
+    return;
+  }
+  try {
+    const [snap, tokens, waste, sv] = await Promise.all([
+      get('/v1/snapshot'), get('/v1/tokens?hours=24'), get('/v1/waste?days=1'), get('/v1/settings')]);
+    D = {snap: snap.rows || [], hosts: snap.hosts || {}, tokens, waste};
+    settings = sv; R = waste.rates || {};
+    $('err').innerHTML = '';
+    render();
+    $('updated').textContent = 'updated ' + new Date().toLocaleTimeString() + ' · refreshes every minute';
+  } catch (e) {
+    $('err').innerHTML = '<div class="err">Could not load data from the processor (' + esc(e.message) +
+      '). Is it still running? Retrying every minute.</div>';
+  }
+}
+
+// ---------------------------------------------------------------- derived data
+function hostsFromSnapshot(){
+  const hosts = {};
+  D.snap.forEach(r => {
+    const h = hosts[r.host] || (hosts[r.host] = {host: r.host, infra: infraOf(r.host), w: 0, at: r.captured_at || r.received_at, rows: []});
+    h.w += r.watts || 0; h.rows.push(r);
+  });
+  return Object.values(hosts).sort((a, b) => b.w - a.w);
+}
+// servers grouped by the infrastructure they run on, largest first
+function infraGroups(hosts){
+  const g = {};
+  hosts.forEach(h => { const x = g[h.infra] || (g[h.infra] = {name: h.infra, w: 0, hosts: []}); x.w += h.w; x.hosts.push(h); });
+  return Object.values(g).sort((a, b) => b.w - a.w);
+}
+// GPUs that are idle right now (in a waste state and still reporting), split per owner
+function idleNow(hostSet){
+  const out = [];
+  (D.waste.gpus || []).forEach(g => {
+    if (!g.waste || !g.reporting || (hostSet && !hostSet.has(g.host))) return;
+    const owners = Object.entries(g.owners || {});
+    const watts = g.watts || 0;
+    if (!owners.length) out.push({g, owner: null, share: 1, dept: 'unmapped', w: watts});
+    else owners.forEach(([name, o]) => out.push({g, owner: name, share: o.share, dept: dept(o.department), w: watts * o.share}));
+  });
+  return out;
+}
+
+// ---------------------------------------------------------------- render
+function render(){
+  const hosts = hostsFromSnapshot();
+  const gpus = D.waste.gpus || [];
+  if (!hosts.length && !gpus.length) { $('main').innerHTML = emptyState(); return; }
+  if (cur !== 'all' && !hosts.some(h => h.infra === cur)) cur = 'all';
+  $('main').innerHTML = kpis(hosts) + tokenCard() + serverCard(hosts) +
+    '<div class="tabs" id="tabs"></div><div class="sub" id="sub"></div>' +
+    '<div class="card" id="deptcard"></div>' + wasteCard() + recCard() + settingsCard() + footer();
+  renderTabs(hosts); renderDept(hosts); wire(hosts);
+}
+
+function emptyState(){
+  return '<div class="card"><h2>No data yet</h2><div class="empty">' +
+    'This processor is running, but no collector has sent anything yet. On each GPU machine, run the collector ' +
+    'pointed at this address with the <b>collector key</b> that the processor printed when it started:' +
+    '<div class="boundary"><code>export AAREKA_INGEST_URL="' + esc(location.origin) + '"</code><br>' +
+    '<code>export AAREKA_ORG_KEY="&lt;collector key&gt;"</code><br><code>python aareka_sender.py</code></div>' +
+    'Figures appear here within a minute of the first send.</div></div>' + footer();
+}
+
+function kpis(hosts){
+  const total = hosts.reduce((s, h) => s + h.w, 0);
+  const kwhDay = total * 24 / 1000, pue = R.pue || 1;
+  const idle = idleNow(null), idleW = idle.reduce((s, x) => s + x.w, 0);
+  const idleGpus = new Set(idle.map(x => x.g.host + '/' + x.g.gpu_id)).size;
+  const t = D.waste.totals || {};
+  const k = (l, v, s, cls) => '<div class="kpi ' + (cls || '') + '"><div class="l">' + l + '</div><div class="v">' +
+    v + '</div><div class="s">' + s + '</div></div>';
+  const small = u => ' <span style="font-size:15px;font-weight:600">' + u + '</span>';
+  const pueTxt = R.pue ? ' &times; PUE ' + num(R.pue, 2) : ' (no PUE set)';
+  const carbon = R.carbon_g_per_kwh;
+  return '<div class="kpis">' +
+    k('Datacenter power', fmtW(total), 'IT load, measured &middot; ' + hosts.length + ' server' + (hosts.length === 1 ? '' : 's')) +
+    (hasElec()
+      ? k('Facility cost / day', money(energyCost(kwhDay)), 'IT ' + money(kwhDay * R.electricity_rate_per_kwh) + pueTxt, 'cost')
+      : k('Energy / day', fmtKWh(kwhDay), 'set an electricity rate below for cost')) +
+    (carbon != null
+      ? k('Facility carbon / day', num(kwhDay * pue * carbon / 1000, 1) + ' kg',
+          R.pue ? 'incl. cooling/UPS (PUE ' + num(R.pue, 2) + ')' : 'IT load only (no PUE set)')
+      : k('Facility carbon / day', '&mdash;', 'set a carbon factor below')) +
+    (hasElec()
+      ? k('Idle waste / day', money(energyCost(idleW * 24 / 1000)), fmtW(idleW) + ' idle now', 'idle')
+      : k('Idle waste / day', fmtKWh(idleW * 24 / 1000), fmtW(idleW) + ' idle now', 'idle')) +
+    k('GPU waste today', fmtGH(t.idle_gpu_hours || 0) + small('GPU-h'),
+      (t.allocated_gpu_hours ? Math.round((t.idle_gpu_hours || 0) / t.allocated_gpu_hours * 100) + '% of GPU time &middot; ' : '') +
+      idleGpus + ' GPU' + (idleGpus === 1 ? '' : 's') + ' idle now', 'idle') +
+    '</div><div class="sub" style="margin:-6px 0 16px">' +
+    (hasElec() || carbon != null
+      ? 'Power = measured IT load. Cost' + (carbon != null ? ' &amp; carbon' : '') + ' are <b>calculated from your rates</b>' +
+        (R.pue ? ' and include facility overhead (cooling + UPS) at <b>PUE ' + num(R.pue, 2) + '</b> &mdash; a separate, configurable layer, never blended into the measured figure' : '') + '.'
+      : 'Power = measured IT load. No rates set, so figures are in watts, kWh and GPU-hours: add your electricity rate and carbon factor under <b>Rates &amp; waste thresholds</b> below.') +
+    '</div>';
+}
+
+function tokenCard(){
+  const t = D.tokens || {}, tt = t.totals || {}, models = (t.by_model || []).filter(m => m.j_per_output_token != null);
+  if (!tt.output_tokens) {
+    return '<div class="card"><h2>Energy per token &mdash; inference, last 24 h</h2><div class="empty">' +
+      'No inference data yet. To meter tokens, set <code>AAREKA_METRICS_URL</code> on the collector to your inference ' +
+      'server\'s <code>/metrics</code> page (vLLM, SGLang, TGI, or llama.cpp with <code>--metrics</code>).</div></div>';
+  }
+  const hi = Math.max(...models.map(m => m.j_per_output_token), 1e-9);
+  const perM = j => hasElec() ? money(j * 1e6 / 3.6e6 * R.electricity_rate_per_kwh * (R.pue || 1)) + ' / M tokens' : null;
+  return '<div class="card"><h2>Energy per token &mdash; inference, last 24 h <span class="measured">measured</span></h2>' +
+    '<div class="tokhead">Across all models: <b>' + num(tt.j_per_output_token, 2) + ' J</b> per output token ' +
+    '<span style="color:var(--muted)">&middot; ' + num(tt.output_tokens, 0) + ' tokens &middot; ' +
+    fmtJ(tt.energy_j || 0) + '</span></div>' +
+    models.map(m => '<div class="tok"><div class="dname">' + esc(m.model) + '<span class="c">' +
+      esc([m.server, m.host].filter(Boolean).join(' on ')) + '</span></div>' +
+      '<div class="track"><div class="jt" style="width:' + (m.j_per_output_token / hi * 100) + '%"></div></div>' +
+      '<div class="amt"><b>' + num(m.j_per_output_token, 2) + ' J / token</b><br><span class="c">' +
+      num(m.output_tokens, 0) + ' tokens &middot; ' + fmtJ(m.energy_j) +
+      (perM(m.j_per_output_token) ? ' &middot; ' + perM(m.j_per_output_token) : '') + '</span></div></div>').join('') +
+    '<div class="boundary">Measured by the collector: GPU power sampled every 0.5 s and integrated into joules, tokens read ' +
+    'from your inference server\'s own counters. GPU' + (tt.cpu_measured ? ' and CPU' : '') + ' only, so every figure is a ' +
+    '<b>lower bound</b>' + (hasElec() ? '; cost per million tokens uses ' + eRate() : '') + '.</div></div>';
+}
+
+function serverCard(hosts){
+  const groups = infraGroups(hosts), total = groups.reduce((s, g) => s + g.w, 0) || 1;
+  return '<div class="card"><h2>Power by infrastructure &mdash; one datacenter, split across the estate</h2>' +
+    '<div class="stack">' + groups.map((g, i) => '<div class="seg" data-infra="' + esc(g.name) + '" title="' + esc(g.name) +
+      ': ' + fmtW(g.w) + '" style="width:' + (g.w / total * 100) + '%;background:' + INF[i % INF.length] + '"></div>').join('') + '</div>' +
+    '<div class="stacklegend">' + groups.map((g, i) => '<span class="lg" data-infra="' + esc(g.name) + '"><span class="sw" style="background:' +
+      INF[i % INF.length] + '"></span>' + esc(g.name) + ' &middot; <b>' + fmtW(g.w) + '</b> &middot; ' +
+      Math.round(g.w / total * 100) + '% &middot; ' + perDay(g.w) + '</span>').join('') + '</div>' +
+    (groups.some(g => g.name === NOT_REPORTED) ? '<div class="sub" style="margin:10px 0 0">' + NOT_REPORTED +
+      ': servers whose collector is older than 0.7.0 and does not say which infrastructure it runs on.</div>' : '') +
+    '</div>';
+}
+
+function renderTabs(hosts){
+  const groups = infraGroups(hosts);
+  $('tabs').innerHTML = ['all', ...groups.map(g => g.name)].map(t =>
+    '<button class="tab' + (cur === t ? ' on' : '') + '" data-tab="' + esc(t) + '">' +
+    (t === 'all' ? 'Datacenter' : esc(t)) + '</button>').join('');
+  const g = groups.find(x => x.name === cur);
+  $('sub').textContent = g ? g.hosts.map(h => h.host).join(', ') + ' · latest reading from each'
+    : 'Whole estate rolled up to department, then split by infrastructure';
+}
+
+function renderDept(hosts){
+  const inGroup = cur === 'all' ? null : new Set(hosts.filter(h => h.infra === cur).map(h => h.host));
+  const rows = inGroup ? D.snap.filter(r => inGroup.has(r.host)) : D.snap;
+  const by = {};
+  rows.forEach(r => { const d = dept(r.department); const x = by[d] || (by[d] = {dept: d, w: 0, est: false});
+    x.w += r.watts || 0; if (r.attribution !== 'exact') x.est = true; });
+  idleNow(inGroup).forEach(i => { const x = by[i.dept] || (by[i.dept] = {dept: i.dept, w: 0, est: false});
+    x.idle = (x.idle || 0) + i.w; });
+  const list = Object.values(by).map(x => Object.assign(x, {w: Math.max(x.w, x.idle || 0)})).sort((a, b) => b.w - a.w);
+  const max = Math.max(...list.map(x => x.w), 1e-9);
+  const untagged = [...new Set(rows.filter(r => dept(r.department) === 'unmapped').map(r => r.workload))];
+  $('deptcard').innerHTML = '<h2>Power by department &mdash; ' + (cur === 'all' ? 'datacenter' : esc(cur)) + '</h2>' +
+    (list.map(d => {
+      const iw = d.idle || 0, aw = Math.max(d.w - iw, 0);
+      return '<div class="row"><div class="dname">' + esc(d.dept) + '</div><div class="track">' +
+        '<div class="active" style="width:' + (aw / max * 100) + '%"></div><div class="idle" style="width:' + (iw / max * 100) + '%"></div></div>' +
+        '<div class="amt"><b>' + fmtW(d.w) + '</b> &middot; <span class="c">' + perDay(d.w) + '</span>' +
+        (d.est ? '<br><span class="estimated">estimated</span>' : '') +
+        (iw > 0 ? '<br><span style="color:var(--warn)">' + fmtW(iw) + ' idle</span>' : '') + '</div></div>';
+    }).join('') || '<div class="empty">No workload readings here yet.</div>') +
+    '<div class="legend"><span><span class="sw" style="background:var(--good)"></span>active</span>' +
+    '<span><span class="sw" style="background:var(--warn)"></span>idle GPU right now (allocated, not working = waste)</span>' +
+    '<span>estimated = split on a shared GPU or CPU</span></div>' +
+    (untagged.length ? '<div class="note">&#9888; needs tagging: <b>' + untagged.map(esc).join(', ') +
+      '</b> ' + (untagged.length === 1 ? 'has' : 'have') + ' no department &rarr; shown as <b>unmapped</b>. ' +
+      'Set <code>AAREKA_DEPT_MAP</code> on the collector.</div>' : '');
+}
+
+function wasteCard(){
+  const w = D.waste, gpus = w.gpus || [], L = w.state_labels || {}, th = w.thresholds || {};
+  const order = ['working', 'light_use', 'loaded_waiting', 'empty', 'unknown'], cnt = {};
+  gpus.forEach(g => { cnt[g.state] = (cnt[g.state] || 0) + 1; });
+  const by = {};
+  (w.by_department_day || []).forEach(r => { const x = by[r.department] || (by[r.department] = {dept: r.department, h: 0, wh: 0, gc: null, ec: null, est: false});
+    x.h += r.idle_gpu_hours; x.wh += r.idle_energy_wh; if (r.hours_label === 'estimated') x.est = true;
+    if (r.cost && r.cost.gpu_hours_part != null) x.gc = (x.gc || 0) + r.cost.gpu_hours_part;
+    if (r.cost && r.cost.energy_part != null) x.ec = (x.ec || 0) + r.cost.energy_part; });
+  const list = Object.values(by).sort((a, b) => b.h - a.h), max = Math.max(...list.map(x => x.h), 1e-9);
+  const tv = k => th[k] ? th[k].value : null, tag = k => th[k] && th[k].user_set ? 'your setting' : 'default';
+  const t = w.totals || {}, tc = t.cost || {};
+  const idle = idleNow(null), spells = w.spells || [];
+  const idleGpus = new Set(idle.map(x => x.g.host + '/' + x.g.gpu_id)).size;
+  const longest = spells.filter(sp => sp.ongoing).sort((a, b) => b.duration_s - a.duration_s)[0];
+  const money2 = [tc.gpu_hours_part != null ? money(tc.gpu_hours_part) + ' GPU-hours' : '',
+                  tc.energy_part != null ? money(tc.energy_part) + ' energy' : ''].filter(Boolean).join(' + ');
+  return '<div class="card"><h2>GPU waste &mdash; today <span class="hint">&mdash; from each GPU\'s utilisation, memory and measured power</span></h2>' +
+    '<div class="states">GPUs now ' + order.filter(s => cnt[s]).map(s => '<span class="pill st-' + s + '">' + esc(L[s] || s) +
+      '</span> <b style="color:var(--ink)">' + cnt[s] + '</b>' + (s === 'light_use' ? ' could share' : '')).join(' &nbsp;') +
+      ' &nbsp;&middot; ' + gpus.length + ' GPUs</div>' +
+    '<div style="font-size:15px;margin-bottom:6px"><b style="color:var(--warn)">' + fmtGH(t.idle_gpu_hours || 0) + ' idle GPU-hours</b> today' +
+      (t.allocated_gpu_hours ? ' &mdash; ' + Math.round((t.idle_gpu_hours || 0) / t.allocated_gpu_hours * 100) + '% of allocated GPU time' : '') +
+      ' &middot; ' + fmtKWh((t.idle_energy_wh || 0) / 1000) + (money2 ? ' &middot; ' + money2 : '') + '</div>' +
+    (idleGpus ? '<div style="font-size:13.5px;color:var(--muted);margin-bottom:16px">Idle right now: <b style="color:var(--ink)">' + idleGpus +
+      ' of ' + gpus.length + ' GPUs</b>' + (longest ? ' &middot; longest idle: <b style="color:var(--ink)">' + esc(longest.workload || 'No workload') +
+      '</b> (' + esc(longest.host) + ', ' + esc(infraOf(longest.host)) + '), <b style="color:var(--warn)">' + fmtDur(longest.duration_s) + '</b>' : '') +
+      '</div>' : '<div style="margin-bottom:16px"></div>') +
+    (list.map(d => '<div class="row"><div class="dname">' + esc(d.dept) + '</div><div class="track">' +
+      '<div class="idle" style="width:' + (d.h / max * 100) + '%"></div></div><div class="amt"><b>' + fmtGH(d.h) +
+      ' GPU-h</b>' + (d.est ? '<span class="estimated">estimated</span>' : '') + '<br><span class="c">' + fmtKWh(d.wh / 1000) +
+      ([d.gc != null ? money(d.gc) + ' GPU-h' : '', d.ec != null ? money(d.ec) + ' energy' : ''].filter(Boolean)
+        .map((x, i) => (i ? ' + ' : ' &middot; ') + x).join('')) +
+      '</span></div></div>').join('') || '<div class="empty">No idle GPU time today.</div>') +
+    '<div class="boundary">Not working below <b>' + num(tv('util_threshold_pct'), 1) + '%</b> utilisation (' + tag('util_threshold_pct') +
+    ') &middot; close to idle within <b>' + num(tv('idle_power_margin_pct'), 1) + '%</b> of each GPU\'s own idle power (' +
+    tag('idle_power_margin_pct') + ') &middot; counted as waste: <b>' + esc((tv('waste_states') || []).map(s => L[s] || s).join(' and ') || 'none') +
+    '</b> (' + tag('waste_states') + '). Idle time is counted only between back-to-back readings; time with no data is never counted. ' +
+    'Hours and energy are measured; a split on a shared GPU is <b>estimated</b>.</div></div>';
+}
+
+function recCard(){
+  const idle = idleNow(null).sort((a, b) => b.w - a.w);
+  const spells = D.waste.spells || [];
+  const items = idle.map(i => {
+    const sp = spells.find(s => s.ongoing && s.host === i.g.host && s.gpu_id === i.g.gpu_id && (s.workload || null) === i.owner);
+    const kwhM = i.w * 24 * 30 / 1000, eM = energyCost(kwhM);
+    const gr = ghRate(i.g.gpu_model), gM = gr != null ? gr * 24 * 30 * i.share : null;
+    const save = (eM != null || gM != null) ? (eM || 0) + (gM || 0) : null;
+    return Object.assign(i, {sp, kwhM, save, eM, gM});
+  });
+  const totalSave = items.some(x => x.save != null) ? items.reduce((s, x) => s + (x.save || 0), 0) : null;
+  const totalKwh = items.reduce((s, x) => s + x.kwhM, 0);
+  return '<div class="card"><h2>Recommended actions <span class="hint">&mdash; recommendation only, Aareka never executes</span></h2>' +
+    (items.length ? '<div class="savings">Potential savings: <b>' + (totalSave != null ? money(totalSave) : fmtKWh(totalKwh)) +
+      ' / month</b> <span style="color:var(--muted);font-weight:400">(if the GPUs idle right now were released' +
+      (totalSave != null ? ', calculated from your rates' : '; add rates for a money figure') + ')</span></div>' +
+      items.map(x => {
+        const empty = x.g.state === 'empty';
+        return '<div class="rec"><div class="rectgt"><b>' + (x.owner ? esc(x.owner) : 'No workload') + '</b> ' +
+          '<span class="c">&middot; ' + esc(x.dept) + ' &middot; ' + esc(x.g.host) + ' ' + esc(x.g.gpu_id) + ' &middot; ' +
+          fmtW(x.w) + ' idle' + (x.sp && x.sp.duration_s > 0 ? ' for <b style="color:var(--warn)">' + fmtDur(x.sp.duration_s) + '</b>' : ', just started') +
+          '</span><br><span class="pill st-' + esc(x.g.state) + '">' + esc((D.waste.state_labels || {})[x.g.state] || x.g.state) +
+          '</span> <span class="c">' + (empty ? 'allocated, nothing running on it' : 'a process holds the GPU but does no work') +
+          ' &middot; ' + esc(infraOf(x.g.host)) + '</span></div>' +
+          '<div class="recact">' + (empty ? 'Release the GPU' : 'Stop the idle job or release the GPU') +
+          '<div class="handoff">for your team, through your own scheduler</div></div>' +
+          '<div class="recsave">save ~<b>' + (x.save != null ? money(x.save) : fmtKWh(x.kwhM)) + '</b>/mo' +
+          (x.save != null ? '<br><span class="c">' + [x.gM != null ? money(x.gM) + ' GPU-h' : '', x.eM != null ? money(x.eM) + ' energy' : '']
+            .filter(Boolean).join(' + ') + '</span>' : '') + '</div></div>';
+      }).join('')
+    : '<div class="empty">No GPU is idle right now. Nothing to recommend.</div>') +
+    '<div class="boundary">&#9432; These are <b>recommendations for your own team</b>. Releasing a GPU or stopping a job ' +
+    'happens through your own scheduler (Kubernetes, Slurm, vSphere) &mdash; <b>Aareka never executes</b>.</div></div>';
+}
+
+function settingsCard(){
+  if (DEMO) {
+    const gr = Object.entries(R.gpu_hour_rates || {}).filter(([, r]) => r != null)
+      .map(([m, r]) => esc(m) + ' ' + money(r) + '/GPU-hour');
+    return '<div class="boundary" style="margin-bottom:18px">Rates used in this demo: ' + eRate() +
+      (R.carbon_g_per_kwh != null ? '; ' + num(R.carbon_g_per_kwh, 0) + ' g CO2e/kWh' : '') +
+      (gr.length ? '; ' + gr.join(', ') : '') + '. In your own installation you set your rates and waste ' +
+      'thresholds on the dashboard; without rates it shows watts, kWh and GPU-hours only.</div>';
+  }
+  const v = (settings && settings.values) || {}, Dd = (settings && settings.defaults) || {};
+  const choices = (settings && settings.waste_state_choices) || [];
+  const models = [...new Set([...((settings && settings.gpu_models_seen) || []), ...Object.keys(v.gpu_hour_rates || {})])].sort();
+  const val = k => v[k] == null ? '' : v[k];
+  const wsNow = Array.isArray(v.waste_states) ? v.waste_states : (Dd.waste_states || []);
+  const row = (label, hint, input, def) => '<div class="srow"><div class="lab">' + label + '<span>' + hint + '</span></div><div>' +
+    input + '</div><div class="def">' + (def || '') + '</div></div>';
+  const reset = id => '<button class="btn sm" data-reset="' + id + '">Reset to default</button>';
+  return '<details class="card" id="setcard"' + (settingsOpen ? ' open' : '') + '><summary>Rates &amp; waste thresholds</summary>' +
+    '<div class="sub" style="margin:12px 0 4px">Every field is optional. A rate left empty gives no money figure; a threshold left empty uses its default.</div>' +
+    row('Electricity rate', 'what you pay per kWh', '<input class="sf" id="s_elec" type="number" min="0" step="0.0001" placeholder="not set" aria-label="Electricity rate per kWh" value="' + val('electricity_rate_per_kwh') + '"><span class="unit">per kWh</span>') +
+    row('Currency', 'shown before every money figure', '<input class="sf" id="s_cur" type="text" maxlength="8" placeholder="not set" aria-label="Currency" value="' + esc(v.currency || '') + '">') +
+    row('PUE', 'cooling and power losses; applied to energy only', '<input class="sf" id="s_pue" type="number" min="1" max="5" step="0.01" placeholder="not set" aria-label="PUE" value="' + val('pue') + '">') +
+    row('Carbon factor', 'grams of CO2e per kWh of your electricity (your supplier or grid figure)', '<input class="sf" id="s_carbon" type="number" min="0" max="2000" step="1" placeholder="not set" aria-label="Carbon factor, grams CO2e per kWh" value="' + val('carbon_g_per_kwh') + '"><span class="unit">g/kWh</span>') +
+    row('GPU-hour rate', 'what one hour of each GPU model costs you',
+      models.length ? '<table class="rt">' + models.map(m => '<tr><td>' + esc(m) + '</td><td><input class="sf grate" type="number" min="0" step="0.01" placeholder="not set" aria-label="GPU-hour rate for ' + esc(m) + '" data-model="' + esc(m) + '" value="' + ((v.gpu_hour_rates || {})[m] == null ? '' : v.gpu_hour_rates[m]) + '"></td></tr>').join('') + '</table>'
+        : '<span class="hint">no GPU models reported yet</span>') +
+    row('Not working below', 'GPU utilisation under which a GPU counts as not working',
+      '<input class="sf" id="s_util" type="number" min="0" max="100" step="0.1" placeholder="' + num(Dd.util_threshold_pct, 1) + ' (default)" aria-label="Not working below, percent" value="' + val('util_threshold_pct') + '"><span class="unit">%</span>',
+      'Default ' + num(Dd.util_threshold_pct, 1) + '% ' + reset('util_threshold_pct')) +
+    row('Close to idle within', 'of each GPU\'s own idle power',
+      '<input class="sf" id="s_margin" type="number" min="0" max="1000" step="0.1" placeholder="' + num(Dd.idle_power_margin_pct, 1) + ' (default)" aria-label="Close to idle within, percent" value="' + val('idle_power_margin_pct') + '"><span class="unit">%</span>',
+      'Default ' + num(Dd.idle_power_margin_pct, 1) + '% ' + reset('idle_power_margin_pct')) +
+    row('Counted as waste', 'Light use is shown as "could share" unless added here',
+      '<div class="chk">' + choices.map(c => '<label><input type="checkbox" class="sws" value="' + esc(c.id) + '"' + (wsNow.includes(c.id) ? ' checked' : '') + '> ' + esc(c.label) + '</label>').join('') + '</div>',
+      'Default ' + esc((Dd.waste_states || []).map(id => (choices.find(c => c.id === id) || {}).label || id).join(' and ')) + ' ' + reset('waste_states')) +
+    '<div style="display:flex;gap:12px;align-items:center;margin-top:14px"><button class="btn pri" id="save">Save</button><span class="smsg" id="smsg"></span></div></details>';
+}
+
+function footer(){
+  return '<footer>Every number is computed by this processor from what your collectors send: measured server power ' +
+    '(GPU via nvidia-smi / DCGM, CPU via RAPL / IPMI / BMC) &rarr; attributed per workload (dedicated exact, shared / ' +
+    'vGPU / MIG estimated) &rarr; rolled up to the department that owns it. Department comes from your own tags and ' +
+    'mappings &mdash; never inferred; untagged workloads show as <b>unmapped</b>. A reading that is missing is shown as ' +
+    'not available, never as zero.' + (DEMO ? '<br><b>Demo:</b> the estate and its readings are illustrative; every figure ' +
+    'was computed from them by the real Aareka processor. Generated ' + esc(DEMO.generated || '') + '.' : '') +
+    '<br>Aareka &middot; open source &middot; read-only</footer>';
+}
+
+// ---------------------------------------------------------------- interaction
+let settingsOpen = false, wsUserSet = false;
+
+function wire(hosts){
+  document.querySelectorAll('.seg,.lg').forEach(el => el.onclick = () => select(el.dataset.infra, hosts));
+  document.querySelectorAll('#tabs .tab').forEach(el => el.onclick = () => select(el.dataset.tab, hosts));
+  const card = $('setcard'); if (!card) return;
+  card.ontoggle = () => { settingsOpen = card.open; };
+  wsUserSet = Array.isArray(((settings || {}).values || {}).waste_states);
+  document.querySelectorAll('.sws').forEach(c => c.onchange = () => { wsUserSet = true; });
+  const Dd = (settings || {}).defaults || {};
+  const resets = {util_threshold_pct: () => $('s_util').value = '', idle_power_margin_pct: () => $('s_margin').value = '',
+    waste_states: () => { wsUserSet = false; document.querySelectorAll('.sws').forEach(c => c.checked = (Dd.waste_states || []).includes(c.value)); }};
+  document.querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resets[b.dataset.reset]());
+  $('save').onclick = () => save(false);
+}
+
+function select(h, hosts){ cur = h; renderTabs(hosts); renderDept(hosts);
+  document.querySelectorAll('#tabs .tab').forEach(el => el.onclick = () => select(el.dataset.tab, hosts)); }
+
+function collect(){
+  const out = {electricity_rate_per_kwh: $('s_elec').value, currency: $('s_cur').value, pue: $('s_pue').value,
+    carbon_g_per_kwh: $('s_carbon').value,
+    util_threshold_pct: $('s_util').value, idle_power_margin_pct: $('s_margin').value, gpu_hour_rates: {}};
+  const keep = ((settings || {}).values || {}).ticket_idle_hours;
+  if (keep != null) out.ticket_idle_hours = keep;
+  document.querySelectorAll('.grate').forEach(i => { if (i.value !== '') out.gpu_hour_rates[i.dataset.model] = i.value; });
+  if (wsUserSet) out.waste_states = [...document.querySelectorAll('.sws')].filter(c => c.checked).map(c => c.value);
+  return out;
+}
+
+async function save(confirm){
+  const msg = (t, cls) => { $('smsg').className = 'smsg ' + (cls || ''); $('smsg').innerHTML = t; };
+  try {
+    const r = await fetch('/v1/settings', {method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({settings: collect(), confirm_recalculation: confirm})});
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 409 && d.detail && d.detail.requires_confirmation) return confirmBox(d.detail);
+    if (r.status === 400) return msg(((d.detail || {}).errors || ['Please check the values.']).map(esc).join('<br>'), 'bad');
+    if (!r.ok) return msg('Could not save (HTTP ' + r.status + ').', 'bad');
+    settingsOpen = true; await load();
+    msg('Saved.' + (d.recalculated ? ' Past waste figures were recalculated from ' + num(d.readings_recalculated, 0) + ' stored readings.' : ''), 'ok');
+  } catch (e) { msg('Could not save (' + esc(e.message) + ').', 'bad'); }
+}
+
+function confirmBox(detail){
+  const names = {util_threshold_pct: 'Not working below', idle_power_margin_pct: 'Close to idle within', waste_states: 'Counted as waste'};
+  const bg = document.createElement('div'); bg.className = 'modal-bg';
+  bg.setAttribute('role', 'dialog'); bg.setAttribute('aria-modal', 'true');
+  bg.innerHTML = '<div class="modal"><h3>Recalculate past waste?</h3><p>' + esc(detail.message || '') + '</p>' +
+    ((detail.changed || []).length ? '<p style="color:var(--muted);font-size:13px">You changed: ' +
+      detail.changed.map(k => esc(names[k] || k)).join(', ') + '.</p>' : '') +
+    '<div class="acts"><button class="btn" id="mno">Cancel</button><button class="btn pri" id="myes">Recalculate and save</button></div></div>';
+  document.body.appendChild(bg);
+  const close = () => { bg.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') { close(); $('smsg').className = 'smsg'; $('smsg').textContent = 'Not saved. Nothing changed.'; } };
+  document.addEventListener('keydown', onKey);
+  bg.querySelector('#mno').onclick = () => { close(); $('smsg').className = 'smsg'; $('smsg').textContent = 'Not saved. Nothing changed.'; };
+  bg.querySelector('#myes').onclick = () => { close(); save(true); };
+  bg.querySelector('#myes').focus();
+}
+
+load();
+if (!DEMO && location.protocol !== 'file:') setInterval(() => { if (!document.querySelector('.modal-bg') && !(document.activeElement && document.activeElement.closest('#setcard'))) load(); }, 60000);
+</script>
+</body>
+</html>

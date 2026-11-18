@@ -2,11 +2,12 @@
 
 *A product of AICON Transformation Solutions*
 
-Aareka is an open source tool for organisations that run their own AI datacenters. It
-measures the energy each token costs, finds the GPUs that sit idle, and shows which team
-uses every watt.
+Aareka is an open source tool for organisations that run their own datacenters. It
+measures the power each server draws and shows which team uses every watt. For GPU
+workloads it also finds the GPUs that sit idle, and for AI inference it measures the
+energy each token costs.
 
-It works from the power your GPU servers actually draw, and it answers four questions:
+It works from the power your servers actually draw, and it answers four questions:
 
 - **How much energy does each token cost?** For every model you serve, Aareka reports
   joules per output token, tokens per joule and cost per million tokens, by model and by
@@ -319,10 +320,11 @@ Documentation:
 
 ## The problem
 
-You started running AI in datacenters you own. Your power use jumped, and nobody can say
-which team, application or pipeline is responsible. The facility team sees a spike in
-power, the AI teams see their jobs, and nobody can connect the two. Meanwhile, some of the
-GPUs you pay for sit allocated but idle, and nobody notices.
+You run servers in datacenters you own, and more of them now carry GPUs for AI,
+research or rendering. Your power use has grown, and nobody can say which team,
+application or pipeline is responsible. The facility team sees a spike in power, the
+application teams see their jobs, and nobody can connect the two. Meanwhile, some of the
+servers and GPUs you pay for sit allocated but idle, and nobody notices.
 
 - **Facility tools** (DCIM and energy platforms) measure real power, but only for a rack or
   a building. They do not know which software was running.
@@ -395,7 +397,8 @@ Aareka differs in three ways:
 - **It covers your whole estate, not just Kubernetes.** Cost tools built for Kubernetes
   depend on information that Kubernetes provides. Aareka keeps attributing power where
   that information is incomplete or missing, across bare metal, VMware and mixed estates,
-  which is where most enterprises run their new AI workloads.
+  which is where most enterprises still run much of their work, including new AI
+  workloads.
 
 Utilisation tools answer the question "is this GPU busy, and how much power does it
 draw?" Aareka answers "how was this energy assigned to this workload, under what rule, and
@@ -438,18 +441,31 @@ telemetry must not leave the site, or you can use the hosted service.
 
 ## Who Aareka is for
 
-**Aareka is built first for enterprises that run their own GPUs, often alongside older
-VMware and bare metal infrastructure, with several internal AI teams.** The problem is
-concrete: you bought expensive GPU capacity, the facility team sees a power spike, and
-nobody can say which team is responsible or how much of that capacity sat idle.
+Aareka is for any organisation that runs its own servers and wants to know which team
+uses the power, what it costs and what it emits. Power attribution, cost and carbon work
+for any server Aareka can read. Two features depend on the workload: GPU waste needs
+NVIDIA GPUs, and energy per token needs a language model inference server.
 
-HPC and research clusters have the same profile. They are often bare metal, scheduled with
-Slurm, and have unusual telemetry that cost tools built for Kubernetes cannot read at all.
+| Type of estate | What Aareka gives you |
+|---|---|
+| **AI training and inference** | Everything: power by team, GPU waste, and energy per token for every model you serve. |
+| **HPC and research clusters** | Power by team and GPU waste on shared GPU clusters, which are often bare metal and scheduled with Slurm. Power is attributed by process, by server, or from a list of which server belongs to which group; attribution to individual Slurm jobs is not built yet. |
+| **Rendering, visual effects, simulation and video transcoding** | Power by team and GPU waste, which matters wherever GPUs sit allocated between jobs. |
+| **Private clouds on VMware** | Each host's measured power split across its virtual machines and departments, for chargeback, showback and carbon reporting. This works for servers without GPUs too. (Beta) |
+| **Kubernetes platforms** | Each node's measured power split across its pods and namespaces, for any kind of workload. (Beta) |
+| **Enterprise servers on bare metal** | Power, cost and carbon for databases, business applications and other services. CPU power is measured on Linux; on Windows it is estimated. A management controller (BMC or IPMI) gives an exact total for each machine. |
 
-Aareka is designed for estates you own or run in a hybrid setup, where there is no cloud
-bill to break down and physical power limits matter most. It is less useful if you only use
-public cloud, where spending is already itemised, although even there nobody accounts for
-energy, capacity or emissions by team.
+**Where Aareka fits less well:**
+
+- **Colocation providers** can measure each customer's racks, but they usually cannot run
+  software inside their customers' servers, so Aareka cannot attribute power to workloads
+  there.
+- **Public cloud users** cannot read the physical power of the hardware they rent. Their
+  spending is already itemised, although nobody accounts for its energy or emissions by
+  team.
+- **AMD and Intel GPUs** are not yet read directly. Power can still be attributed from a
+  meter for the whole machine, but GPU waste and the power of each GPU currently rely on
+  NVIDIA's tools.
 
 ---
 

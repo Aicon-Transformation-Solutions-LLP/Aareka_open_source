@@ -2,10 +2,11 @@
 
 *A product of AICON Transformation Solutions*
 
-**Know the energy each token costs, find the GPUs that sit idle, and see which team uses
-every watt in the AI datacenters you run yourself.**
+Aareka is an open source tool for organisations that run their own AI datacenters. It
+measures the energy each token costs, finds the GPUs that sit idle, and shows which team
+uses every watt.
 
-Aareka measures the power your GPU servers actually draw and answers four questions:
+It works from the power your GPU servers actually draw, and it answers four questions:
 
 - **How much energy does each token cost?** For every model you serve, Aareka reports
   joules per output token, tokens per joule and cost per million tokens, by model and by

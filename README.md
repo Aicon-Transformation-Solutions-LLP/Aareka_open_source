@@ -494,10 +494,10 @@ leads. Measurement is the product now.
 
 ## Status
 
-Aareka is a prototype. Power attribution and energy per token have been measured on real
-hardware: an NVIDIA RTX 3050 running Llama 3.2 3B. GPU waste monitoring has been checked
-against real readings from that machine, and against simulated readings for the states that
-machine could not produce; it has not yet run on a production cluster. The integrations
+Aareka is a prototype. Power attribution and energy per token have been measured on a
+real NVIDIA GPU running Llama 3.2 3B. GPU waste monitoring has been checked against real
+readings from that GPU, and against simulated readings for the states it could not
+produce; it has not yet run on a production cluster. The integrations
 for live clusters and management controllers are written against the standard interfaces
 (Redfish, DCGM, vSphere and Kubernetes) and tested against simulated systems; they have not
 yet run in a production environment. **We are looking for a design partner for the first

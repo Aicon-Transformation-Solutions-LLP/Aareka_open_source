@@ -1,19 +1,22 @@
 # Aareka - A Product of AICON Transformation Solutions
 
-**The trusted energy ledger for private and hybrid AI datacenters.**
+**Watts per token, GPU waste, and every watt traced to the team that used it — for the AI
+datacenters you run yourself.**
 
-Aareka measures the power your servers draw, covering the GPU, the CPU and the whole
-machine, and tells you three things:
+Aareka measures the power your GPU servers actually draw and turns it into the answers
+that drive your AI power bill:
 
-- **Where the power goes.** Every watt is attributed to the workloads, applications and
-  business units responsible, with each figure labelled **measured or estimated** and
-  given an explicit confidence.
-- **What each token costs in energy.** For the models you serve, Aareka reports joules
-  per output token, tokens per joule and cost per million tokens, per model and per
-  department.
-- **Which GPUs are wasted.** Aareka combines GPU utilisation, GPU memory and measured
-  power to say what each GPU is doing, how long it has sat idle, and what that idle time
-  costs.
+- **Watts per token.** For every model you serve: joules per output token, tokens per
+  joule, and cost per million tokens, per model and per department. See which models,
+  and which ways of serving them, burn the most energy for the same output.
+- **GPU waste.** What each GPU is doing right now (working, lightly used, held by a job
+  that does nothing, or empty), how long it has sat idle, how many GPU-hours that adds
+  up to today, and what it costs.
+- **Where every watt goes.** Power, cost and carbon, attributed to the workloads,
+  applications and departments responsible, across bare metal, VMware and Kubernetes,
+  with each figure labelled **measured or estimated**.
+- **What to do about it.** Ranked recommendations, such as which idle GPUs to release
+  and what that saves per month. Aareka recommends; your own team acts.
 
 It runs on the mixed estates that Kubernetes-only cost tools can't read: bare metal,
 VMware, hardware from different vendors, and servers with incomplete telemetry. IT load

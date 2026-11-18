@@ -1,55 +1,57 @@
-# Aareka - A Product of AICON Transformation Solutions
+# Aareka
 
-**Watts per token, GPU waste, and every watt traced to the team that used it — for the AI
-datacenters you run yourself.**
+*A product of AICON Transformation Solutions*
 
-Aareka measures the power your GPU servers actually draw and turns it into the answers
-that drive your AI power bill:
+**Know the energy each token costs, find the GPUs that sit idle, and see which team uses
+every watt in the AI datacenters you run yourself.**
 
-- **Watts per token.** For every model you serve: joules per output token, tokens per
-  joule, and cost per million tokens, per model and per department. See which models,
-  and which ways of serving them, burn the most energy for the same output.
-- **GPU waste.** What each GPU is doing right now (working, lightly used, held by a job
-  that does nothing, or empty), how long it has sat idle, how many GPU-hours that adds
-  up to today, and what it costs.
-- **Where every watt goes.** Power, cost and carbon, attributed to the workloads,
-  applications and departments responsible, across bare metal, VMware and Kubernetes,
-  with each figure labelled **measured or estimated**.
-- **What to do about it.** Ranked recommendations, such as which idle GPUs to release
-  and what that saves per month. Aareka recommends; your own team acts.
+Aareka measures the power your GPU servers actually draw and answers four questions:
 
-It runs on the mixed estates that Kubernetes-only cost tools can't read: bare metal,
-VMware, hardware from different vendors, and servers with incomplete telemetry. IT load
-is counted first; facility overhead and cooling (PUE) are applied as a separate, labelled
-layer and never folded into the measured figures.
+- **How much energy does each token cost?** For every model you serve, Aareka reports
+  joules per output token, tokens per joule and cost per million tokens, by model and by
+  department. You can see which models, and which ways of serving them, use the most
+  energy for the same output.
+- **Which GPUs are wasted?** Aareka shows what each GPU is doing right now: working,
+  lightly used, held by a job that does no work, or empty. It also shows how long each
+  idle GPU has been idle, how many GPU hours that adds up to today, and what they cost.
+- **Where does the power go?** Aareka attributes power, cost and carbon to the
+  workloads, applications and departments that used them, across bare metal, VMware and
+  Kubernetes. Every figure is labelled **measured** or **estimated**.
+- **What should we do about it?** Aareka recommends actions, such as which idle GPUs to
+  release and how much that would save each month. Your own team decides and acts.
 
-Aareka is **read-only**. It never touches production. It shows you what is actually
-happening and, where it finds a problem, what your own team could do about it. It never
-takes that action for you.
+Aareka works on mixed estates that cost tools built only for Kubernetes cannot read: bare
+metal, VMware, hardware from different vendors, and servers with incomplete telemetry. It
+counts the IT load first. Facility overhead and cooling (PUE) are added as a separate,
+clearly labelled layer and are never mixed into the measured figures.
+
+Aareka only reads. It never changes anything on your machines and never takes action for
+you. It shows you what is happening and, where it finds a problem, what your team could do
+about it.
 
 ---
 
 ## See it before you install
 
-**[Open the live demo dashboard →](https://aicontransformation.com/aareka-demo/)**
+**[Open the live demo dashboard](https://aicontransformation.com/aareka-demo/)**
 
 The demo shows the dashboard for an example datacenter, so you can see what Aareka
-measures before installing anything. The estate is illustrative; every figure on it was
-computed by the real Aareka engine, and the energy-per-token figures are a real
-measurement on an NVIDIA RTX 3050.
+measures before you install anything. The datacenter is illustrative, but every figure on
+the page was calculated by the real Aareka engine. The energy per token figures are a real
+measurement taken on an NVIDIA RTX 3050.
 
-[![Aareka demo dashboard: power, cost, carbon, GPU waste today and energy per token](docs/images/demo-dashboard-top.png)](https://aicontransformation.com/aareka-demo/)
+[![The Aareka demo dashboard, showing power, cost, carbon, GPU waste today and energy per token](docs/images/demo-dashboard-top.png)](https://aicontransformation.com/aareka-demo/)
 
-What you can see on it:
+What you can see on the dashboard:
 
 | Part of the dashboard | What it tells you |
 |---|---|
-| **Power, cost and carbon** | Measured IT load right now, and what it costs and emits per day at your electricity rate and carbon factor, with facility overhead (PUE) shown as a separate layer. |
-| **GPU waste today** | Idle GPU-hours today, their share of all GPU time, and how many GPUs are idle right now. |
-| **Energy per token** | Joules per output token for each model you serve. The demo's real measurement shows the same model using 7× the energy per token depending only on how requests are served. |
-| **Power by infrastructure and department** | Every watt split across bare metal, VMware and Kubernetes, then rolled up to the department that owns it, with the idle part of each shown separately. |
-| **GPU waste in detail** | Each GPU's state (Working, Light use, Loaded waiting, Empty), idle GPU-hours and their cost by department, and how long each idle GPU has been idle. |
-| **Recommended actions** | Which idle GPUs to release and what that would save per month. Aareka recommends; your own team acts. |
+| **Power, cost and carbon** | How much power your servers draw right now, and what that costs and emits per day at your electricity rate and carbon factor. Facility overhead (PUE) is shown separately. |
+| **GPU waste today** | How many GPU hours were idle today, what share of all GPU time that is, and how many GPUs are idle right now. |
+| **Energy per token** | How many joules each model uses per output token. In the demo's real measurement, the same model used seven times as much energy per token depending only on how its requests were served. |
+| **Power by infrastructure and department** | How the power splits across bare metal, VMware and Kubernetes, and how much of it each department uses, with the idle part shown separately. |
+| **GPU waste in detail** | The state of each GPU (Working, Light use, Loaded waiting or Empty), the idle GPU hours and their cost for each department, and how long each idle GPU has been idle. |
+| **Recommended actions** | Which idle GPUs to release, and how much each would save per month. Aareka recommends; your team decides. |
 
 [![GPU waste today and recommended actions in the Aareka demo](docs/images/demo-gpu-waste.png)](https://aicontransformation.com/aareka-demo/)
 
@@ -57,8 +59,8 @@ What you can see on it:
 
 ## Quickstart
 
-Two ways to try it. Either way the collector is the same: a read-only program that runs on
-your GPU machine and makes outbound calls only.
+There are two ways to try Aareka. In both, you run the same collector: a small program
+that reads your GPU machine and only makes outgoing connections.
 
 ### Option A: run everything yourself
 
@@ -66,76 +68,82 @@ You need Python 3.9 or newer, and an NVIDIA GPU with its driver installed (so th
 `nvidia-smi` works) on the machine you want to measure. Everything below can run on that
 one machine.
 
-**1. Get the code and start the processor.** The processor receives readings, attributes them and
-serves the dashboard.
+**1. Get the code and start the processor.** The processor receives the readings, works
+out the figures and serves the dashboard.
 ```bash
 git clone https://github.com/Aicon-Transformation-Solutions-LLP/Aareka_open_source.git
 cd Aareka_open_source/Processor
 pip install fastapi "uvicorn[standard]"
 uvicorn ingest_api:app --host 127.0.0.1 --port 8080
 ```
-When it starts it prints a **collector key**; copy it for step 3. Data is kept in a local
-SQLite file, `aareka_ingest.db`. Every setting is optional: `AAREKA_DB_PATH` keeps the
-database somewhere else, `AAREKA_COLLECTOR_KEY` chooses your own collector key, and
-`AAREKA_ACCOUNTS=1` turns on sign-up and login for several organisations sharing one
-processor. To let collectors on other machines send to it, start it with `--host 0.0.0.0`
-and put it behind HTTPS (a reverse proxy or load balancer).
+When the processor starts, it prints a **collector key**. Copy it for step 3. The data is
+kept in a local SQLite file called `aareka_ingest.db`.
 
-**2. Open the dashboard.** Open http://localhost:8080. There is no sign-up or login: it
-shows this site's data straight away, and fills in as soon as a collector sends. Anyone who
-can reach this address can see it, so keep the processor on your internal network.
+All settings are optional. `AAREKA_DB_PATH` keeps the database somewhere else,
+`AAREKA_COLLECTOR_KEY` lets you choose your own collector key, and `AAREKA_ACCOUNTS=1`
+turns on accounts with logins, so that several organisations can share one processor. If
+collectors on other machines need to send to it, start it with `--host 0.0.0.0` and put it
+behind HTTPS, for example with a reverse proxy or load balancer.
 
-**3. Run the collector**, in a second terminal:
+**2. Open the dashboard.** Go to http://localhost:8080. There is no sign up or login: the
+dashboard shows your data straight away and fills in as soon as a collector sends
+readings. Anyone who can reach this address can see the dashboard, so keep the processor
+on your internal network.
+
+**3. Run the collector** in a second terminal:
 ```bash
 cd Aareka_open_source/Collector
 export AAREKA_INGEST_URL="http://localhost:8080"
 export AAREKA_ORG_KEY="<the collector key the processor printed>"
 python aareka_sender.py --once
 ```
-Expected output (numbers illustrative):
+You should see output like this (the numbers will differ):
 ```
   Aareka sender  ->  http://localhost:8080   source=local (gpu-node-01)
   gpu-node-01: HTTP 200  readings=2  attributed=1
       unmapped           61.3 W
 ```
-Power shows as **unmapped** until you say who owns what (see "Label who owns what" below).
+Power shows as **unmapped** until you tell Aareka who owns what. See "Label who owns what"
+below.
 
-**4. Keep it running and open the dashboard.**
+**4. Keep the collector running and refresh the dashboard.**
 ```bash
-python aareka_sender.py            # sends every 60 s; Ctrl+C to stop
+python aareka_sender.py            # sends every 60 s; press Ctrl+C to stop
 ```
-Refresh http://localhost:8080. GPU waste needs no setup: each GPU's state appears with
-the first reading, and idle time builds up from there. Each GPU learns its own idle power
-after five back-to-back low-use readings, about five minutes at the default interval
-(`AAREKA_INTERVAL` sets the interval in seconds).
+GPU waste needs no setup. Each GPU's state appears with the first reading, and idle time
+builds up from there. Each GPU learns its own idle power after five consecutive readings
+at low use, which takes about five minutes at the default interval. You can change the
+interval in seconds with `AAREKA_INTERVAL`.
 
 On Windows PowerShell, set variables with `$env:AAREKA_ORG_KEY="..."` instead of `export`.
 
 ### Option B: use the hosted service
 
-AICON Transformation Solutions runs Aareka as a hosted service.
+AICON Transformation Solutions also runs Aareka as a hosted service.
 
-1. Go to **aareka.aicontransformation.com**, choose **Create your account**, and copy
-   your collector key.
-2. Run the collector exactly as in step 3 above, with
+1. Go to **aareka.aicontransformation.com**, choose **Create your account**, and copy your
+   collector key.
+2. Run the collector exactly as in step 3 above, but set
    `AAREKA_INGEST_URL="https://aareka.aicontransformation.com"`.
-3. Refresh the dashboard at the same address.
+3. Open the dashboard at the same address.
 
 ### Add energy per token
 
-Point the collector at your inference server's Prometheus `/metrics` page (vLLM, SGLang,
-TGI, or llama.cpp started with `--metrics`). Between sends it integrates GPU power every
-0.5 s into joules and reads the tokens your server produced in the same window.
+Point the collector at your inference server's Prometheus `/metrics` page. This works with
+vLLM, SGLang, TGI, and llama.cpp started with `--metrics`. Between sends, the collector
+measures GPU power every half second, adds it up into joules, and reads how many tokens
+your server produced in the same period.
 ```bash
 # vLLM on this machine, on GPU 0:
 export AAREKA_METRICS_URL="http://127.0.0.1:8000/metrics|gpus=0"
-# llama.cpp's counters carry no model name, so label it:
+# llama.cpp's counters do not include a model name, so give it one:
 # export AAREKA_METRICS_URL="http://127.0.0.1:8080/metrics|model=llama3.2-3b|gpus=0"
 # several servers: join entries with ";"   format: <url>[|model=<label>][|gpus=<i,j>]
 ```
-The collector only reads your server's counters; it never runs or touches your models.
-With token metering on, the first send waits one interval so it has a measured window.
-Training-only machines can skip this; power attribution and GPU waste still work.
+The collector only reads your server's counters. It never runs or touches your models.
+With token metering on, the first send waits one interval so that it has a full period to
+measure. Machines that only train models can skip this step; power attribution and GPU
+waste still work.
 
 ### Label who owns what (optional)
 
@@ -143,148 +151,152 @@ Training-only machines can skip this; power attribution and GPU waste still work
 # maps a process name or VM name to a department
 export AAREKA_DEPT_MAP='{"training-job":"Research","inference-svc":"Platform"}'
 ```
-Anything without an owner is shown as **unmapped**, never guessed.
+Anything without an owner is shown as **unmapped**. Aareka never guesses an owner.
 
-**Trouble sending?** `python aareka_sender.py --once` prints the exact HTTP error. The most
-common causes are a wrong or missing `AAREKA_ORG_KEY` (HTTP 401) or no network route to
-the processor.
+**Trouble sending?** Run `python aareka_sender.py --once`; it prints the exact error. The
+most common causes are a wrong or missing `AAREKA_ORG_KEY` (HTTP 401) or no network route
+to the processor.
 
-Full collector requirements, per mode: [Overall_prerequisites.md](Overall_prerequisites.md).
+The full list of what the collector needs, for each mode, is in
+[Overall_prerequisites.md](Overall_prerequisites.md).
 
 ---
 
 ## GPU waste
 
-An allocated GPU that does no work still draws power and still costs its GPU-hour rate.
-At every reading Aareka puts each GPU into one state:
+A GPU that is allocated but does no work still draws power and still costs its hourly
+rate. At every reading, Aareka puts each GPU into one of these states:
 
 | State | What it means | Counted as waste by default |
 |---|---|---|
-| **Empty** | No process on the GPU, utilisation below the threshold, power close to idle | Yes |
-| **Loaded, waiting** | A process holds the GPU, but utilisation is below the threshold | Yes |
-| **Light use** | Utilisation above the threshold, but power still close to idle | No; shown as "could share" |
-| **Working** | Utilisation above the threshold and power well above idle | No |
-| **Unknown** | The readings needed are not available | Never |
+| **Empty** | No process is on the GPU, utilisation is below the threshold, and power is close to idle. | Yes |
+| **Loaded, waiting** | A process holds the GPU, but utilisation is below the threshold. | Yes |
+| **Light use** | Utilisation is above the threshold, but power is still close to idle. | No; shown as "could share" |
+| **Working** | Utilisation is above the threshold and power is well above idle. | No |
+| **Unknown** | The readings needed are not available. | Never |
 
-**It works out of the box.** The defaults are: below **5%** utilisation a GPU counts as not
+**It works without any setup.** By default, a GPU below **5%** utilisation counts as not
 working, power within **15%** of that GPU's own idle level counts as close to idle, and
-**Empty** and **Loaded, waiting** count as waste. You can change any of them under
+**Empty** and **Loaded, waiting** count as waste. You can change any of these under
 **Rates & waste thresholds** on the dashboard.
 
-**Idle power is learned per GPU, not assumed.** It is the lowest power a GPU held for five
-back-to-back readings while not working, over the last 30 days. Until a GPU has shown
-that, it is marked "learning" and is classified on utilisation and ownership alone.
-Modeled (estimated) power is never used to learn it.
+**Each GPU's idle power is learned, not assumed.** It is the lowest power the GPU held for
+five consecutive readings while it was not working, over the last 30 days. Until a GPU has
+done that, it is marked "learning" and is classified by its utilisation and ownership
+alone. Estimated power is never used to learn it.
 
-**Idle spells.** Back-to-back readings in a waste state for the same GPU and owner form a
-spell, with a start time, a duration and the energy drawn. Time with no readings is never
-counted as idle. Idle GPU-hours and idle energy are totalled per workload and per
-department per day (UTC days). On a shared GPU (vGPU or MIG), idle time is split by each
-owner's share and labelled **estimated**.
+**Idle spells.** Consecutive readings in which the same GPU and owner are in a waste state
+form a spell. Each spell records when it started, how long it lasted and how much energy
+it used. Time with no readings is never counted as idle. Idle GPU hours and idle energy
+are added up for each workload and each department, per day (in UTC). On a shared GPU
+(vGPU or MIG), idle time is split by each owner's share and labelled **estimated**.
 
-**Cost, in two parts.** With your rates set on the dashboard, waste cost is shown as:
+**Cost comes in two parts.** Once you set your rates on the dashboard, Aareka shows the
+cost of waste as:
 
-- idle GPU-hours × your GPU-hour rate for that GPU model, and
-- idle energy × your electricity rate × PUE.
+- idle GPU hours multiplied by your hourly rate for that GPU model, and
+- idle energy multiplied by your electricity rate and PUE.
 
-The two parts are always shown separately, with the rate used beside every money figure,
-and labelled "calculated from your rates". A rate you have not set gives no money figure:
-you see GPU-hours and kWh only, never a made-up price.
+The two parts are always shown separately, each money figure shows the rate it used, and
+all money is labelled "calculated from your rates". If you have not set a rate, Aareka
+shows GPU hours and kWh only. It never makes up a price.
 
-**Changing a threshold** asks you to confirm first, because past figures change: Aareka
-keeps every raw reading (utilisation, memory and power), and recalculates past states,
-spells and totals from them with the new threshold.
+**Changing a threshold** asks you to confirm first, because past figures will change.
+Aareka keeps every raw reading (utilisation, memory and power) and recalculates past
+states, spells and totals with the new threshold.
 
-**What it needs:** collector 0.6.0 or newer in `local` mode, which sends each GPU's
-utilisation, memory and model name. GPUs from an older collector are shown as Unknown.
-`vcenter`, `kubernetes` and `fleet` modes don't send per-GPU readings yet, so their GPUs
-don't appear in GPU waste.
+**What it needs:** collector version 0.6.0 or newer in `local` mode, which sends each GPU's
+utilisation, memory and model name. GPUs that report through an older collector are shown
+as Unknown. The `vcenter`, `kubernetes` and `fleet` modes do not send readings for each
+GPU yet, so their GPUs do not appear in GPU waste.
 
 ---
 
 ## Deployment modes: where to install, and what access it needs
 
-The collector runs in one of four modes, selected with the `AAREKA_SOURCE` environment
-variable. In every mode it is **read-only**: it makes **outbound calls only** to the processor,
-never opens an inbound port on your machines, and never writes to or issues commands
-against your systems. Bare metal (`local`) is stable; the `vcenter`, `kubernetes` and
-`fleet` modes are **beta**: the code is complete and tested against fixtures, and is
-validated against your real environment on first connect.
+The collector runs in one of four modes, which you choose with the `AAREKA_SOURCE`
+environment variable. In every mode it only reads. It only makes outgoing connections to
+the processor, never opens a port on your machines, and never writes to or sends commands
+to your systems. The bare metal mode (`local`) is stable. The `vcenter`, `kubernetes` and
+`fleet` modes are in **beta**: the code is complete and has been tested against sample
+data, and it is checked against your real environment the first time it connects.
 
 | `AAREKA_SOURCE` | Install it on | Access it needs | GPU waste | Status |
 |---|---|---|---|---|
-| `local` | each GPU server | local `nvidia-smi`; outbound HTTPS | yes | stable |
-| `vcenter` | one machine that can reach vCenter | read-only vCenter account; outbound HTTPS | not yet | beta |
-| `kubernetes` | one machine with a kubeconfig, or in-cluster | read-only Kubernetes API + Prometheus; outbound HTTPS | not yet | beta |
-| `fleet` | one control node | read-only SSH (or Prometheus/BMC) to the servers; outbound HTTPS | not yet | beta |
+| `local` | each GPU server | local `nvidia-smi`; outgoing HTTPS | yes | stable |
+| `vcenter` | one machine that can reach vCenter | a vCenter account that can only read; outgoing HTTPS | not yet | beta |
+| `kubernetes` | one machine with a kubeconfig, or inside the cluster | read access to the Kubernetes API and Prometheus; outgoing HTTPS | not yet | beta |
+| `fleet` | one control node | read access over SSH (or Prometheus or BMC) to the servers; outgoing HTTPS | not yet | beta |
 
 ### Bare metal (`local`)
 
-Install the collector on **each GPU server** you want to measure; a single server is enough
-for a first test. It reads that machine directly, so it needs:
+Install the collector on **each GPU server** you want to measure. One server is enough for
+a first test. The collector reads that machine directly, so it needs:
 
-- the **NVIDIA driver**, so that `nvidia-smi` works. This provides measured GPU power, GPU
+- the **NVIDIA driver**, so that `nvidia-smi` works. This gives measured GPU power, GPU
   utilisation and memory, and which process is using each GPU;
-- optionally, permission to read the CPU energy counter (root on Linux) for measured CPU
+- optionally, permission to read the CPU energy counter (root on Linux), for measured CPU
   power;
-- optionally, **read-only** access to the server's management controller (BMC / iDRAC /
-  iLO, via Redfish or IPMI) for an exact whole-machine total;
-- **outbound HTTPS (port 443)** to the processor. Nothing needs to be opened inbound.
+- optionally, read access to the server's management controller (BMC, iDRAC or iLO,
+  through Redfish or IPMI), for an exact total for the whole machine;
+- **outgoing HTTPS (port 443)** to the processor. Nothing needs to be opened for incoming
+  connections.
 
-### VMware / vCenter (`vcenter`)
+### VMware and vCenter (`vcenter`)
 
 Install the collector on **one machine that can reach your vCenter over the network**. You
-do **not** install anything on the ESXi hosts or inside the virtual machines. A single
-read-only connection to vCenter returns each host's total power, every virtual machine's
-vCPU and memory allocation, its GPU assignment (passthrough or vGPU), and its department
-tag. It needs a **read-only vCenter account**, network access to the **vCenter API (TCP
-443)**, and **outbound HTTPS** to the processor.
+do **not** install anything on the ESXi hosts or inside the virtual machines. One
+connection to vCenter returns each host's total power, each virtual machine's CPU and
+memory allocation, its GPU assignment (passthrough or vGPU), and its department tag. It
+needs a **vCenter account that can only read**, network access to the **vCenter API (TCP
+443)**, and **outgoing HTTPS** to the processor.
 
 ### Kubernetes (`kubernetes`)
 
-Install the collector on **one machine that holds a read-only kubeconfig**, or run it
-inside the cluster as a pod with a read-only service account. Kubernetes supplies the
-topology (which pod runs on which node, with its CPU request, memory, GPU count and
-labels), and the power figures come from your monitoring stack. It needs **read-only
-access to the Kubernetes API**, a **Prometheus** endpoint that scrapes `dcgm-exporter` (GPU
-power) and `node-exporter` (CPU power), and **outbound HTTPS** to the processor.
+Install the collector on **one machine that holds a kubeconfig with read access**, or run
+it inside the cluster as a pod with a service account that can only read. Kubernetes tells
+Aareka which pod runs on which node, with its CPU request, memory, GPU count and labels.
+The power figures come from your monitoring system. It needs **read access to the
+Kubernetes API**, a **Prometheus** server that collects `dcgm-exporter` (GPU power) and
+`node-exporter` (CPU power), and **outgoing HTTPS** to the processor.
 
-### Fleet: many bare-metal servers from one place (`fleet`)
+### Fleet: many bare metal servers from one place (`fleet`)
 
-When you have many bare-metal servers and would rather not install an agent on each one,
-run the collector on **one control node** that can already reach them. It sweeps every
-server for its total power and labels each whole server with its owning business unit,
-using the mapping your IT team provides (see below); the processor then attributes the
-power. It needs **read-only SSH** to each
-server (or their Prometheus / BMC endpoints) and **outbound HTTPS** to the processor.
+If you have many bare metal servers and would rather not install the collector on each
+one, run it on **one control node** that can already reach them. It reads each server's
+total power and labels each server with the business unit that owns it, using the list
+your IT team provides (see below). The processor then attributes the power. It needs
+**read access over SSH** to each server (or to their Prometheus or BMC endpoints) and
+**outgoing HTTPS** to the processor.
 
 ---
 
-## What we need from your IT team: the ownership mapping
+## What we need from your IT team: who owns what
 
-Aareka answers two questions, and it can only answer the second one with your help:
+Aareka answers two questions, and it needs your help with the second one:
 
-1. **How much power did each workload draw?** Measured automatically, in every mode.
-2. **Which team, application or business unit owns that power?** This is an *ownership
-   fact*, not something that can be inferred from telemetry, so it has to come from you.
+1. **How much power did each workload draw?** Aareka measures this automatically, in every
+   mode.
+2. **Which team, application or business unit owns that power?** This is a fact about your
+   organisation that telemetry cannot reveal, so it has to come from you.
 
-Where the mapping comes from depends on the estate:
+Where this information comes from depends on your estate:
 
-- **VMware:** ideally the department is already recorded on each VM as a vCenter **custom
-  attribute or tag**, which Aareka reads directly. If not, supply a VM-name → business-unit
-  mapping.
+- **VMware:** ideally, each VM already records its department in a vCenter **custom
+  attribute or tag**, which Aareka reads directly. If not, provide a list that maps each VM
+  name to a business unit.
 - **Kubernetes:** the owning team is usually already a **label** (for example `app` or
-  `team`) or the **namespace**, both of which Aareka reads. An explicit mapping can override
-  this.
-- **Bare metal / fleet:** there is no orchestrator to read, so your IT team provides a
-  simple **server → application/business-unit** list (for example,
-  `gpu-node-01 → Research`).
+  `team`) or the **namespace**, and Aareka reads both. You can override this with your own
+  list.
+- **Bare metal and fleet:** there is nothing to read the owner from, so your IT team
+  provides a simple list that maps each server to an application or business unit (for
+  example, `gpu-node-01 → Research`).
 
-**If the mapping isn't available,** Aareka never guesses and never blocks. Power is still
-measured and attributed down to each workload, VM, pod or server, and the totals still
-reconcile. What you lose is the business roll-up: anything without an owner appears in an
-honest **unmapped** bucket rather than being charged to the wrong team. You can start
-measuring straight away and fill in the mapping as you go.
+**If you do not have this list yet,** Aareka never guesses and never stops working. It
+still measures power and attributes it to each workload, VM, pod or server, and the totals
+still add up. The only thing missing is the roll up to business units: anything without an
+owner appears as **unmapped** instead of being charged to the wrong team. You can start
+measuring straight away and add owners as you go.
 
 ---
 
@@ -292,191 +304,194 @@ measuring straight away and fill in the mapping as you go.
 
 | Folder | What it holds |
 |---|---|
-| [`Collector/`](Collector) | The read-only collector that runs on your machines: power readings, GPU utilisation and memory, ownership, token metering. Start with `aareka_sender.py`. |
-| [`Processor/`](Processor) | The processor and dashboard: the ingest API, attribution, energy per token, GPU waste, and the dashboard with its rates and thresholds. It runs on any machine with Python. Start with `ingest_api.py`. |
+| [`Collector/`](Collector) | The collector that runs on your machines. It reads power, GPU utilisation and memory, ownership and token counts. Start with `aareka_sender.py`. |
+| [`Processor/`](Processor) | The processor and the dashboard. It receives readings, attributes power, and works out energy per token and GPU waste. It runs on any machine with Python. Start with `ingest_api.py`. |
 
 Documentation:
 
-- [Overall_prerequisites.md](Overall_prerequisites.md): what the collector needs, per
-  mode (also as `Collector_Prerequisites.docx`).
-- `Collector_Code_Glossary.docx` and `Processor_Code_Glossary.docx`: one short
-  description per code file.
+- [Overall_prerequisites.md](Overall_prerequisites.md) explains what the collector needs in
+  each mode. The same guide is in `Collector_Prerequisites.docx`.
+- `Collector_Code_Glossary.docx` and `Processor_Code_Glossary.docx` describe each code file
+  in a few sentences.
 
 ---
 
 ## The problem
 
-You started running AI in datacenters you own. Your power draw jumped, unpredictably,
-and no one can defend which team, application, or pipeline is driving it. The facility
-team sees a power spike; the AI teams see their jobs; nobody can connect the two. And
-some of the GPUs you are paying for sit allocated but idle, with nobody noticing.
+You started running AI in datacenters you own. Your power use jumped, and nobody can say
+which team, application or pipeline is responsible. The facility team sees a spike in
+power, the AI teams see their jobs, and nobody can connect the two. Meanwhile, some of the
+GPUs you pay for sit allocated but idle, and nobody notices.
 
-- **Facility tools** (DCIM, energy platforms) measure real power — but stop at the
-  rack or the building. They don't know what software ran.
-- **Cost tools** (OpenCost, Kubecost, Cast AI) attribute to workloads — but by
-  multiplying resource-hours by a configured price, or by reading device-level
-  telemetry inside Kubernetes. They don't reconcile whole-server energy across a
-  mixed, non-Kubernetes estate.
+- **Facility tools** (DCIM and energy platforms) measure real power, but only for a rack or
+  a building. They do not know which software was running.
+- **Cost tools** (OpenCost, Kubecost and Cast AI) assign costs to workloads, but they do it
+  by multiplying the hours a resource was used by a price, or by reading GPU telemetry
+  inside Kubernetes. They do not account for the energy of whole servers across an estate
+  that mixes bare metal, VMware and Kubernetes.
 
-Aareka is the layer between them: it reconciles heterogeneous physical telemetry into
-a confidence-scored, whole-server energy ledger, attributed to business ownership,
-across private and hybrid estates — including bare metal and virtualized
-infrastructure.
-
----
-
-## What makes the number trustworthy
-
-Not "we show GPU watts" — every GPU already reports that, and so do the utilization
-tools. Aareka is built around the accounting gap those tools leave:
-
-- **Measured vs estimated, visibly labeled.** Every reading is tagged `measured`
-  (from a physical sensor) or `modeled` (estimated), with an error band. No modeled
-  number is ever presented as measured. Aareka produces metered energy figures where
-  physical meters exist, and clearly bounded estimates where they do not.
-- **Reconciled to server totals.** Component readings are reconciled against a
-  whole-box meter where one exists, so nothing is double-counted; a rack meter is
-  never mistaken for a server.
-- **Honest about what it can't see.** With no whole-box meter, Aareka reports a
-  bounded range for the unmeasured tail (fans, storage, PSU loss) — a floor plus a
-  stated estimate, not false precision. A device-level GPU sensor is a device reading,
-  not the whole server's electrical draw; Aareka is explicit about the difference.
-  A reading that is missing is shown as not available, never as zero.
-- **Provenance by source and method.** A fallback ladder reads whichever telemetry
-  each server exposes and records, for every value, its scope, source, and measurement
-  method — hardware meter (BMC/Redfish/IPMI whole-box), device telemetry (DCGM/NVML
-  GPU), processor counter (RAPL, an energy counter, not a meter), or model. It
-  degrades gracefully, reporting coverage and confidence. Polling is lightweight and
-  low-frequency, so it does not saturate BMC interfaces or the management network.
-- **Rack meters stay at rack scope.** Rack-PDU readings are retained for rack-level
-  reconciliation and coverage; they are never treated as an individual server
-  measurement unless a valid allocation mechanism is present.
-- **Audit-ready provenance.** Attribution rolls up to app, service, and business unit
-  with energy-weighted confidence and per-reading source lineage, suitable for
-  internal showback, capacity planning, and review.
-
-Where partitioning (MIG, vGPU) is used, allocation follows partition entitlement as
-the default policy; this is a disclosed allocation basis, not a claim that partitions draw
-proportional physical power. Workload-level marginal validation is a roadmap item.
+Aareka fills the gap between them. It combines the power readings from all kinds of
+hardware into one account of the energy each whole server used, gives every figure a
+confidence score, and assigns the energy to the teams that own it, across private and
+hybrid estates.
 
 ---
 
-## How this differs from GPU utilization tools
+## Why you can trust the numbers
 
-If you already run NVIDIA Run:ai, Cast AI, Kubecost, ScaleOps, or a DCGM-Exporter →
-Prometheus → Grafana stack, you have **GPU power and utilization on Kubernetes**.
-Aareka differs on scope and accounting integrity, on three lines:
+Every GPU already reports its own power, and so do the usual monitoring tools. Aareka
+focuses on what those tools leave out:
 
-- **Whole-server energy, not device telemetry.** Those tools read GPU device power and
-  utilization. Aareka reconciles the *whole server* — GPU **and** CPU, memory, and the
-  unmeasured tail (fans, storage, PSU loss) — against a physical meter where one
-  exists. In a real datacenter the non-GPU load is not a rounding error.
-- **Accounting integrity, not raw metrics.** A metric is a number; a ledger is a
-  number you can defend. Aareka labels every figure measured-or-modeled, reconciles it
-  to a total, and surfaces what it could not attribute — rather than presenting a
-  device reading as if it were the answer.
-- **Your estate, not just pods.** Kubernetes-focused cost and allocation tools depend
-  on orchestration metadata. Aareka is designed to preserve attribution where that
-  metadata is incomplete or absent — across bare metal, virtualized, and mixed
-  estates, where most enterprises actually run their newly-arrived AI.
+- **Measured and estimated figures are always labelled.** Every reading is marked
+  `measured` (from a physical sensor) or `modeled` (estimated), with a margin of error. An
+  estimate is never presented as a measurement. Where physical meters exist, Aareka reports
+  metered energy; where they do not, it gives a clearly bounded estimate.
+- **Totals add up.** Where a meter for the whole machine exists, Aareka checks the
+  component readings against it, so nothing is counted twice. A rack meter is never
+  mistaken for a single server.
+- **It is honest about what it cannot see.** Without a meter for the whole machine, Aareka
+  reports a range for the parts it cannot measure (fans, storage and power supply losses):
+  a measured minimum plus a stated estimate, not a falsely precise number. A GPU sensor
+  measures the GPU, not the whole server, and Aareka says so. A missing reading is shown
+  as not available, never as zero.
+- **Every value shows where it came from.** Aareka reads whatever telemetry each server
+  offers, trying the most detailed source first. For every value it records the source and
+  method: a hardware meter for the whole machine (BMC, Redfish or IPMI), GPU telemetry
+  (DCGM or NVML), the processor's energy counter (RAPL), or a model. If a source is
+  missing, it falls back to the next one and reports how complete and reliable the result
+  is. It polls lightly and infrequently, so it does not overload management controllers or
+  the management network.
+- **Rack meters stay at rack level.** Readings from a rack's power distribution unit are
+  kept for checking rack totals. They are never treated as one server's measurement unless
+  there is a valid way to divide them.
+- **Results are ready for review.** Power rolls up from workloads to applications,
+  services and business units, with a confidence score weighted by energy and a record of
+  where each reading came from. This is suitable for internal showback, capacity planning
+  and audits.
 
-Utilization tools answer "is this GPU busy, and what does it draw?" Aareka answers
-"how was this measured energy attributed to this workload, under what policy, and can I
-defend that number to finance?"
+On a partitioned GPU (MIG or vGPU), Aareka divides power by each partition's allocation by
+default. This is a stated policy for dividing the power, not a claim that each partition
+physically draws that share. Validating the actual share drawn by each workload is on the
+roadmap.
 
 ---
 
-## Truth first, action second
+## How Aareka differs from GPU utilisation tools
 
-A ledger that only reports is inert. Aareka points to where action would pay off:
-idle and waiting GPUs with what they cost, attribution gaps, abnormally high energy
-intensity, and power-capacity risk — all shaped by measured energy, not
-GPU-utilization heuristics alone. Deeper scheduling recommendations (which workload to
-shed, when) require ownership, priority, and SLA context and follow validated customer
-data; they are not claimed for the measurement product today.
+If you already use NVIDIA Run:ai, Cast AI, Kubecost, ScaleOps, or DCGM Exporter with
+Prometheus and Grafana, you already see **GPU power and utilisation on Kubernetes**.
+Aareka differs in three ways:
 
-But it stops at a **recommendation**. Releasing an idle GPU or shedding a workload is
-for your own team, through your existing orchestrator (Kubernetes, Slurm, vSphere).
-**Aareka never executes.** That boundary is deliberate: no write path, nothing to
-compromise.
+- **It measures whole servers, not just GPUs.** Those tools read the power and utilisation
+  of the GPU itself. Aareka accounts for the whole server: the GPU, the CPU, the memory,
+  and the parts it cannot measure directly (fans, storage and power supply losses),
+  checked against a physical meter where one exists. In a real datacenter, the power used
+  outside the GPU is significant.
+- **It gives numbers you can defend.** A metric is just a number; Aareka's figures can
+  stand up to scrutiny. It labels every figure as measured or estimated, checks it against
+  a total, and shows what it could not attribute, instead of presenting a GPU reading as
+  the whole answer.
+- **It covers your whole estate, not just Kubernetes.** Cost tools built for Kubernetes
+  depend on information that Kubernetes provides. Aareka keeps attributing power where
+  that information is incomplete or missing, across bare metal, VMware and mixed estates,
+  which is where most enterprises run their new AI workloads.
 
-You can run Aareka yourself, including in restricted or air-gapped environments where
-telemetry must not leave the site, or use the hosted service.
+Utilisation tools answer the question "is this GPU busy, and how much power does it
+draw?" Aareka answers "how was this energy assigned to this workload, under what rule, and
+can I defend that figure to finance?"
+
+---
+
+## Measure first, then act
+
+Reporting alone does not save anything. Aareka points out where action would pay off:
+idle and waiting GPUs and what they cost, power it could not attribute, workloads with
+unusually high energy use, and the risk of running out of power capacity. All of these are
+based on measured energy, not on GPU utilisation alone. Detailed scheduling advice, such as
+which workload to stop and when, needs information about ownership, priority and service
+levels, so Aareka does not claim to offer it today.
+
+Aareka stops at a **recommendation**. Releasing an idle GPU or stopping a workload is a
+decision for your team, carried out with your own scheduler (Kubernetes, Slurm or
+vSphere). **Aareka never acts on your systems.** This is deliberate: because it has no way
+to write to your systems, there is nothing in it for an attacker to misuse.
+
+You can run Aareka yourself, including in restricted or isolated environments where
+telemetry must not leave the site, or you can use the hosted service.
 
 ```
-[ Physical power & telemetry ]
+[ Physical power and telemetry ]
             |
-[ Reconciliation & confidence tagging ]   (measured vs modeled)
+[ Checked and labelled ]                  (measured or estimated)
             |
-[ Workload attribution ]                  (app / service / business unit)
+[ Assigned to workloads ]                 (application, service, business unit)
             |
-[ Energy per token · GPU waste ]          (what the power bought, what sat idle)
+[ Energy per token and GPU waste ]        (what the power produced, what sat idle)
             |
-[ Constraint detection & ranked action ]
+[ Problems found and actions ranked ]
             |
-[ Human approval ]  ->  [ Your orchestrator executes ]
+[ Your team approves ]  ->  [ Your scheduler acts ]
 ```
 
 ---
 
-## Where it fits
+## Who Aareka is for
 
-**Initial focus: enterprise private and hybrid GPU estates with VMware/bare-metal
-legacy infrastructure and multiple internal AI teams.** The pain is concrete: you
-bought expensive GPU capacity, the facility team sees a power spike, and nobody can
-defend which team owns it — or say how much of that capacity sat idle.
+**Aareka is built first for enterprises that run their own GPUs, often alongside older
+VMware and bare metal infrastructure, with several internal AI teams.** The problem is
+concrete: you bought expensive GPU capacity, the facility team sees a power spike, and
+nobody can say which team is responsible or how much of that capacity sat idle.
 
-HPC and research clusters fit the same profile — often bare metal, Slurm-scheduled,
-with non-standard telemetry where Kubernetes-native cost tools do not operate at
-all.
+HPC and research clusters have the same profile. They are often bare metal, scheduled with
+Slurm, and have unusual telemetry that cost tools built for Kubernetes cannot read at all.
 
-Aareka is optimized for owned and hybrid estates, where cloud-style billing data is
-absent and physical power constraints matter most. It is less relevant to pure
-public-cloud consumers whose *spend* is already itemized — though energy attribution,
-capacity, and emissions accountability remain unmet even there.
+Aareka is designed for estates you own or run in a hybrid setup, where there is no cloud
+bill to break down and physical power limits matter most. It is less useful if you only use
+public cloud, where spending is already itemised, although even there nobody accounts for
+energy, capacity or emissions by team.
 
 ---
 
-## Where this is heading
+## What comes next
 
-**GPU waste in every mode.** Today GPU waste works in `local` mode. Next, the same
-per-GPU readings come from DCGM in Kubernetes and from vCenter in VMware estates.
+**GPU waste in every mode.** Today, GPU waste works in `local` mode. Next, the same GPU
+readings will come from DCGM in Kubernetes and from vCenter in VMware estates.
 
-**Component-level breakout — storage and NIC/DPU.** Today storage and network draw are
-reconciled *within* the whole-server total but not itemized. A next version breaks them
-out as first-class components — measured where the hardware exposes it (Redfish
-per-component, NVIDIA DPU telemetry; a BlueField DPU alone can draw ~75 W), modeled
-per-device otherwise (per-drive, per-NIC TDP) — and attributes them to the owning
-workload, so a team's *full* footprint (compute + memory + storage + network) rolls up
-to its department.
+**Storage and network as separate parts.** Today, the power used by storage and network
+cards is included in each server's total but not shown separately. A future version will
+show them as their own components. They will be measured where the hardware reports them
+(Redfish component readings and NVIDIA DPU telemetry; a BlueField DPU alone can draw about
+75 W) and estimated from each drive's and card's rated power otherwise. They will then be
+attributed to the workload that uses them, so a team's full footprint (compute, memory,
+storage and network) rolls up to its department.
 
-A trustworthy IT-load energy ledger is the foundation other layers can eventually sit
-on — facility-overhead allocation, emissions-factor reporting, and workload placement
-decisions across cost, energy, and power constraints. These are explicitly not
-near-term claims and Aareka does not do them today; they are noted only to show where a
-defensible measurement layer leads. Measurement is the product now.
+Reliable measurement of IT power is the foundation for further work, such as allocating
+facility overhead, reporting emissions, and deciding where to place workloads based on
+cost, energy and power limits. Aareka does not do these things today, and they are not
+planned for the near term. They are mentioned only to show where reliable measurement
+leads. Measurement is the product now.
 
 ---
 
 ## Status
 
-Prototype. Power attribution and energy per token have been measured on real hardware
-(an NVIDIA RTX 3050 running Llama 3.2 3B). GPU waste monitoring has been checked against
-real readings from that machine, and against simulated readings for the states it could
-not reach; it has not yet run on a production cluster. The live-cluster and live-BMC
-integrations are written against the standard interfaces (Redfish, DCGM, vSphere,
-Kubernetes) and exercised against mocks; they have not yet run end-to-end in a
-production environment. **We are seeking a design partner for the first live
-deployment.** Treat this as a working foundation, not a finished product.
+Aareka is a prototype. Power attribution and energy per token have been measured on real
+hardware: an NVIDIA RTX 3050 running Llama 3.2 3B. GPU waste monitoring has been checked
+against real readings from that machine, and against simulated readings for the states that
+machine could not produce; it has not yet run on a production cluster. The integrations
+for live clusters and management controllers are written against the standard interfaces
+(Redfish, DCGM, vSphere and Kubernetes) and tested against simulated systems; they have not
+yet run in a production environment. **We are looking for a design partner for the first
+live deployment.** Treat Aareka as a working foundation, not a finished product.
 
 ---
 
 ## Open source
 
-Everything in this repository — the collector, the processor and the dashboard — is open
-source under the Apache 2.0 licence. You can run it yourself, change it and build on it.
-AICON Transformation Solutions also offers Aareka as a hosted service, and support for
-teams running it themselves.
+Everything in this repository, including the collector, the processor and the dashboard,
+is open source under the Apache 2.0 licence. You can run it yourself, change it and build
+on it. AICON Transformation Solutions also offers Aareka as a hosted service, and support
+for teams that run it themselves.
 
 See [LICENSE](LICENSE).
 
@@ -484,11 +499,12 @@ See [LICENSE](LICENSE).
 
 ## About the name
 
-*Aareka* — from आरेख (*aarekh*, "the chart" / "the diagram") + *eureka*: the moment you
-finally see where your power goes. A project of AICON Transformation Solutions.
+*Aareka* combines आरेख (*aarekh*, "the chart" or "the diagram") with *eureka*: the moment
+you finally see where your power goes. Aareka is a project of AICON Transformation
+Solutions.
 
-## Not affiliated with
+## Not affiliated
 
-NVIDIA, or any datacenter or energy vendor. "DCGM", "Redfish", "Kubernetes",
-"vSphere" are trademarks of their respective owners, referenced only for
-interoperability.
+Aareka is not affiliated with NVIDIA or with any datacenter or energy vendor. DCGM,
+Redfish, Kubernetes and vSphere are trademarks of their respective owners and are
+mentioned only to describe compatibility.
